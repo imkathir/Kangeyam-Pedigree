@@ -64,6 +64,11 @@ The repo deploys as **one Vercel project with two services** (`vercel.json` at t
 | `api` | `server/` | `express` (entrypoint `src/index.js`) | `/api/*` |
 | `web` | `web/` | `ember` (build `npm run build`, output `dist`) | everything else |
 
+Live deployment: **https://kangeyam-pedigree.vercel.app** (project `kangeyam-pedigree`, production
+alias of branch `main`). Verified end-to-end on that URL: every route returns 200, `/api/v1/*`
+answers from the `api` service, `/assets`, `/media`, `/fonts` are served by `web`, and a browser
+`POST`/`DELETE` round-trip on `/api/v1/animals` returns 201/200.
+
 `web` is a static Ember build, so it does not call `api` from Node — the **browser** calls
 `/api/v1/*` on the same origin, which the top-level rewrite sends to the `api` service. That is
 why there are no service bindings: nothing in either service performs a server-side call to the

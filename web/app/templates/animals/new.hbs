@@ -1,4 +1,21 @@
 <div class="stack">
+{{#if this.submitted}}
+  <div class="card" style="max-width:680px">
+    <div class="eyebrow">Submitted · <span class="ta">சமர்ப்பிக்கப்பட்டது</span></div>
+    <h1 style="margin:6px 0 8px">Thank you — this animal is waiting for review</h1>
+    <p style="margin:0 0 10px">
+      <strong>{{this.submitted.name_en}}</strong>
+      <span class="ta muted">{{this.submitted.name_ta}}</span> has been queued as record
+      #{{this.submitted.id}}. It is not visible in the registry, the pedigree or the owner pages
+      until a registry administrator approves it.
+    </p>
+    <div class="notice small" style="margin-bottom:14px">{{this.submitted.message}}</div>
+    <div class="row-wrap">
+      <button type="button" class="btn btn-primary" {{on "click" this.startAnother}}>Submit another animal</button>
+      <LinkTo @route="animals" class="btn btn-ghost">Browse the registry</LinkTo>
+    </div>
+  </div>
+{{else}}
   <div class="between">
     <div>
       <div class="eyebrow">New registration · புதிய பதிவு</div>
@@ -155,17 +172,21 @@
           <div class="field">
             <label>Sire (father) — must be a bull</label>
             <AnimalSearch @sex="BULL" @selected={{this.sire}} @onSelect={{fn this.assign "sire"}} @placeholder="Search bulls by name or village" />
-            <div class="row" style="margin-top:6px">
-              <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.openStub "sire")}}>+ Add stub sire (name &amp; village only)</button>
-            </div>
+            {{#if this.api.hasWriteKey}}
+              <div class="row" style="margin-top:6px">
+                <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.openStub "sire")}}>+ Add stub sire (name &amp; village only)</button>
+              </div>
+            {{/if}}
           </div>
 
           <div class="field">
             <label>Dam (mother) — must be a cow</label>
             <AnimalSearch @sex="COW" @selected={{this.dam}} @onSelect={{fn this.assign "dam"}} @placeholder="Search cows by name or village" />
-            <div class="row" style="margin-top:6px">
-              <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.openStub "dam")}}>+ Add stub dam (name &amp; village only)</button>
-            </div>
+            {{#if this.api.hasWriteKey}}
+              <div class="row" style="margin-top:6px">
+                <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.openStub "dam")}}>+ Add stub dam (name &amp; village only)</button>
+              </div>
+            {{/if}}
           </div>
 
           {{#if this.stubFor}}
@@ -283,4 +304,5 @@
       </div>
     </aside>
   </form>
+{{/if}}
 </div>

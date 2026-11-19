@@ -22,6 +22,13 @@ CREATE TABLE IF NOT EXISTS animals (
   status               TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','SOLD','DECEASED')),
   notes                TEXT,
   archived_at          TEXT,
+  review_status        TEXT NOT NULL DEFAULT 'APPROVED'
+                       CHECK (review_status IN ('PENDING','APPROVED','REJECTED')),
+  submitted_at         TEXT,
+  reviewed_at          TEXT,
+  review_note          TEXT,
+  submitter_name       TEXT,
+  submitter_phone      TEXT,
   created_at           TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_animals_sex    ON animals(sex);
@@ -40,6 +47,13 @@ CREATE TABLE IF NOT EXISTS owners (
   district          TEXT,
   is_contact_public INTEGER NOT NULL DEFAULT 0,
   notes             TEXT,
+  review_status     TEXT NOT NULL DEFAULT 'APPROVED'
+                    CHECK (review_status IN ('PENDING','APPROVED','REJECTED')),
+  submitted_at      TEXT,
+  reviewed_at       TEXT,
+  review_note       TEXT,
+  submitter_name    TEXT,
+  submitter_phone   TEXT,
   created_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_owners_district ON owners(district);

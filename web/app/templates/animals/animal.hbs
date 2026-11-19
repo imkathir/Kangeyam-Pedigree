@@ -25,6 +25,9 @@
           <span class="badge badge-gen">{{animal.documented_generations}} documented generation{{if (eq animal.documented_generations 1) "" "s"}}</span>
           {{#if animal.tag_or_reg_no}}<span class="badge mono">{{animal.tag_or_reg_no}}</span>{{/if}}
           <span class="badge {{if (eq animal.status "ACTIVE") "badge-live" "badge-muted"}}">{{animal.labels.status.en}}</span>
+          {{#unless (eq animal.review_status "APPROVED")}}
+            <span class="badge badge-muted" title="Only visible to administrators">Pending review</span>
+          {{/unless}}
         </div>
         <h1 class="profile-title">{{animal.name_en}}</h1>
         <div class="profile-ta ta">{{animal.name_ta}}</div>

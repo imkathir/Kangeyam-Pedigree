@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node src/index.js",
-    "seed": "node -e \"require('./src/db').seedIfEmpty()\""
+    "seed": "SEED_DEMO_DATA=1 node -e \"require('./src/db').seedIfEmpty({force:true})\"",
+    "db:wipe": "node src/reset.js",
+    "db:reset": "node src/reset.js --with-demo"
   },
   "keywords": [],
   "author": "",

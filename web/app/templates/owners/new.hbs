@@ -1,3 +1,20 @@
+{{#if this.submitted}}
+  <div class="card" style="max-width:680px">
+    <div class="eyebrow">Submitted · <span class="ta">சமர்ப்பிக்கப்பட்டது</span></div>
+    <h1 style="margin:6px 0 8px">Thank you — this breeder is waiting for review</h1>
+    <p style="margin:0 0 10px">
+      <strong>{{this.submitted.name_en}}</strong>
+      <span class="ta muted">{{this.submitted.name_ta}}</span> has been queued as record
+      #{{this.submitted.id}}. It will appear in the breeders directory once a registry
+      administrator approves it.
+    </p>
+    <div class="notice small" style="margin-bottom:14px">{{this.submitted.message}}</div>
+    <div class="row-wrap">
+      <button type="button" class="btn btn-primary" {{on "click" this.startAnother}}>Add another breeder</button>
+      <LinkTo @route="owners" class="btn btn-ghost">Browse the directory</LinkTo>
+    </div>
+  </div>
+{{else}}
 <form class="stack" {{on "submit" this.save}} style="max-width:760px">
   <div>
     <div class="eyebrow">New breeder</div>
@@ -63,3 +80,4 @@
     <LinkTo @route="owners" class="btn btn-ghost btn-lg">Cancel</LinkTo>
   </div>
 </form>
+{{/if}}

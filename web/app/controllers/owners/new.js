@@ -12,6 +12,7 @@ export default class OwnersNewController extends Controller {
   districts = DISTRICTS;
   @tracked saving = false;
   @tracked errors = [];
+  @tracked submitted = null;
 
   @tracked name_en = '';
   @tracked name_ta = '';
@@ -38,7 +39,7 @@ export default class OwnersNewController extends Controller {
     this.saving = true;
     this.errors = [];
     try {
-      const owner = await this.api.createOwner({
+      const { data: owner, meta } = await this.api.createOwner({
         name_en: this.name_en.trim(),
         name_ta: this.name_ta.trim() || null,
         farm_name: this.farm_name.trim() || null,
@@ -48,6 +49,11 @@ export default class OwnersNewController extends Controller {
         is_contact_public: this.is_contact_public,
         notes: this.notes.trim() || null,
       });
+      if (meta?.review_status === 'PENDING') {
+        this.submitted = { name_en: owner.name_en, name_ta: owner.name_ta, id: owner.id, message: meta.message };
+        this.flash.success('Submitted for review.');
+        return;
+      }
       this.flash.success(`${owner.name_en} added to the breeders directory.`);
       this.router.transitionTo('owners.owner', owner.id);
     } catch (e) {
@@ -55,5 +61,17 @@ export default class OwnersNewController extends Controller {
     } finally {
       this.saving = false;
     }
+  }
+
+  @action
+  startAnother() {
+    this.submitted = null;
+    this.errors = [];
+    this.name_en = '';
+    this.name_ta = '';
+    this.farm_name = '';
+    this.phone = '';
+    this.village = '';
+    this.notes = '';
   }
 }

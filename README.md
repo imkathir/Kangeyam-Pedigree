@@ -5,10 +5,15 @@ built around one core idea: **historical pedigrees for indigenous cattle are inc
 must work from zero.** Every newly registered animal starts at **Generation 0** (parents unknown) and its
 lineage grows organically, backwards and forwards, as breeders document more.
 
-![Dashboard](docs/screenshots/01-dashboard.png)
+Anyone can **submit** a bull, cow or breeder without an account — the record is queued and stays
+invisible until a registry administrator approves it at `/admin`, which is not linked anywhere in
+the app.
+
+![Review queue at /admin](docs/screenshots/14-admin-queue.png)
 
 Screens in `docs/screenshots/`: dashboard, cattle registry, animal profile, pedigree tree,
-mating planner, QR certificate, ownership timeline and a 360 px mobile view.
+mating planner, QR certificate, ownership timeline, a 360 px mobile view, the submission
+confirmation, the review queue (desktop + mobile) and the locked admin page.
 
 ---
 
@@ -21,12 +26,13 @@ kangeyam/
 │   │   ├── index.js        All REST routes under /api/v1
 │   │   ├── lib.js          Enums, pedigree maths, Wright's F, serialisation, validation
 │   │   ├── schema.sql      Full relational schema
-│   │   ├── seed.js         29 animals, 8 owners, 27 achievements, real Kongu bloodlines
-│   │   └── db.js           libSQL (SQLite/Turso) connection + auto-seed
+│   │   ├── seed.js         optional demo herd (29 animals, 8 owners, 27 achievements)
+│   │   ├── reset.js        `npm run db:wipe` / `db:reset` — empty or re-seed the registry
+│   │   └── db.js           libSQL (SQLite/Turso) connection, migrations, optional seeding
 │   ├── public/media/       9 photographs of Kangeyam cattle, Rekla, Jallikattu
-│   └── data/kangeyam.db    SQLite database (created + seeded automatically)
+│   └── data/kangeyam.db    SQLite database (created empty on first run)
 └── web/                    Ember.js 5.12 (Octane) application
-    ├── app/router.js       Meaningful, bookmarkable routes for every entity
+    ├── app/router.js       Bookmarkable routes for every entity, incl. the unlinked /admin
     ├── app/services/api.js Native-fetch API service layer
     ├── app/components/     Glimmer components (recursive pedigree tree, animal search…)
     ├── app/templates/      One template per route
@@ -50,7 +56,18 @@ cd ../server && npm start
 The Express server serves both `/api/v1/*` and the compiled Ember SPA (with history-mode
 fallback), so there is a single origin — no CORS or proxy configuration needed.
 
-To wipe and re-seed the registry: delete `server/data/kangeyam.db*` and restart.
+The registry starts **empty** — no demo animals. Commands for the local database:
+
+```bash
+cd server
+npm run db:wipe     # delete every record, keep the schema
+npm run db:reset    # wipe, then load the 29-animal demo herd
+npm run seed        # load the demo herd into an empty database
+SEED_DEMO_DATA=1 npm start   # same thing, at boot
+```
+
+Nothing is seeded automatically, and a snapshot of the old demo database is kept at
+`.backup/kangeyam-demo-seed-2026-11-19.db` (git-ignored) in case you want it back.
 
 *(`node_modules` is not part of the saved workspace snapshot — run the two `npm install`
 commands again if the sandbox was recycled.)*
@@ -157,14 +174,49 @@ opted in, so masked numbers can never leak through the JSON.
 
 ---
 
-## 4. REST API — `/api/v1`
+## 4. Submissions & moderation
+
+The registry is open to submissions but published by exception:
+
+| Who | Can |
+| --- | --- |
+| anyone | `POST /animals`, `POST /owners` (one animal or breeder at a time, with optional `submitter_name` / `submitter_phone`) |
+| anyone | read everything that is **approved** |
+| admin (registry key) | everything else: approve, reject, edit, delete, media, ownerships, achievements, breeding events, stub ancestors |
+
+A submission is stored with `review_status = 'PENDING'` and disappears from every public surface —
+lists, search, stats, the achievements feed, the owners directory, the mating planner and even
+`GET /animals/:id` (404). Approving flips it to `APPROVED` and it appears everywhere at once;
+rejecting leaves it hidden but keeps the row (and the submitter's note) for reference.
+
+The two forms in the app react to this: after submitting, the farmer sees a confirmation card
+("waiting for review", with the queue number) instead of a profile page.
+
+### The admin queue — `/admin`
+
+Not linked from the navigation, the footer or any button: bookmark `https://…/admin`.
+It lists pending animals and breeders with the submitter's name/phone, the linked owner, the
+sire/dam if given, and Approve / Reject buttons plus counters.
+
+The page renders in three states:
+
+1. **Locked** — this browser has no registry key (tell the admin to use 🔑 Write key).
+2. **Queue** — pending animals and breeders, oldest first.
+3. **All clear** — nothing waiting.
+
+Approving an animal also approves the breeder records that arrived with it (same submission),
+so a first-time farmer does not need two approvals.
+
+---
+
+## 5. REST API — `/api/v1`
 
 | Method | Path | Notes |
 | --- | --- | --- |
 | GET | `/meta` | Enumerations with Tamil + English labels |
 | GET | `/stats` | Dashboard counters, colour & category breakdowns |
 | GET | `/animals` | `?q=&sex=&color=&village=&district=&min_generations=&has_achievements=&has_media=&sort=&page=&per_page=` |
-| POST | `/animals` | Accepts `owner_id` or inline `owner {}` and `media []` for fast entry |
+| POST | `/animals` | Public submission → `202` + `PENDING`; with the admin key → `201` + `APPROVED`. Accepts `owner_id` or inline `owner {}` and `media []` |
 | GET | `/animals/:id` | Full profile + media, ownerships, achievements, progeny, computed generation |
 | PATCH | `/animals/:id` | Partial update incl. parent links (cycle-checked) |
 | DELETE | `/animals/:id` | Hard delete, or **archive** when the animal is a recorded ancestor |
@@ -174,13 +226,89 @@ opted in, so masked numbers can never leak through the JSON.
 | PATCH/DELETE | `/animals/:id/media/:mediaId` | Set primary, edit caption / stage, remove |
 | GET/POST | `/animals/:id/ownerships` | Ordered timeline; can inline-create an owner |
 | PATCH/DELETE | `/animals/:id/ownerships/:ownershipId` | Reorder, re-date, remove |
-| GET/POST | `/owners` | Directory search `?q=&district=&village=` |
+| GET/POST | `/owners` | Directory search `?q=&district=&village=`; `POST` is a public submission (202 + `PENDING`) |
 | GET/PATCH | `/owners/:id` | Profile + currently / previously owned cattle |
 | GET | `/achievements` | Global feed + leaderboard `?category=&q=&year=&sex=` |
 | GET/POST | `/animals/:id/achievements` | Includes `partner_animal_id` for paired Rekla bulls |
 | PATCH/DELETE | `/animals/:id/achievements/:achievementId` | Edit / remove |
 | GET | `/breeding-events` | Mating → expected calving → calf log |
 | GET | `/animals/:id/qr.svg` | QR badge used by the printable certificate |
+| GET | `/admin/queue` | **Admin.** Pending animals + breeders, submitter contacts, counters |
+| POST | `/admin/animals/:id/review` | **Admin.** `{"action":"approve"\|"reject"\|"pending","note":"…"}` |
+| POST | `/admin/owners/:id/review` | **Admin.** Same body; owners linked to an approved animal are published with it |
+
+Errors use standard codes with a JSON body:
+
+```json
+{ "errors": [{ "status": 422, "title": "Validation failed",
+               "detail": ["dam_id: Semmai is a BULL, expected a COW"] }] }
+```
+
+### Access control
+
+One middleware in `server/src/index.js` decides everything, before any handler runs:
+
+| `WRITE_API_KEY` | Environment | Effect |
+| --- | --- | --- |
+| set | anywhere | the key (as `Authorization: Bearer <key>` or `x-api-key: <key>`, constant-time compared) marks the request as **admin** |
+| unset | local dev | everyone is an admin, so `npm start` stays frictionless |
+| unset | `NODE_ENV=production` / Vercel | **nobody** is an admin — submissions still queue, but nothing can be approved, edited or deleted |
+
+Strangers may always `POST /animals` and `POST /owners`; every other mutation needs the key.
+Reads are public but return **approved rows only** — unless the request carries the key, in which
+case pending rows are included (`?include_pending=1`) so `/admin` can preview them.
+
+`GET /api/v1/health` reports the active mode:
+
+```json
+{ "data": { "status": "ok", "animals": 0, "owners": 0, "writes": "key", "reads": "public",
+            "submissions": "open", "is_admin": false, "database": "file" } }
+```
+
+A refused write answers:
+
+```json
+{ "errors": [{ "status": 401, "title": "Admin access requires a key",
+  "detail": "Open the 🔑 Write key panel in the header …" }] }
+```
+
+The Ember client attaches the key from `localStorage` (`kangeyam.writeKey`). Set it with the
+**🔑 Write key** button in the header, or with a link such as `https://…/?key=<key>` — the app
+stores it and strips it from the URL so it stays out of history.
+
+This is a shared secret for a small registry team, not per-user authentication: anyone you send
+the key to becomes an admin, and a browser holding it can read it back. Put real accounts in front
+of the same middleware (the `keyMatches()` seam) before letting untrusted editors in.
+
+---
+
+## 5. REST API — `/api/v1`
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| GET | `/meta` | Enumerations with Tamil + English labels |
+| GET | `/stats` | Dashboard counters, colour & category breakdowns |
+| GET | `/animals` | `?q=&sex=&color=&village=&district=&min_generations=&has_achievements=&has_media=&sort=&page=&per_page=` |
+| POST | `/animals` | Public submission → `202` + `PENDING`; with the admin key → `201` + `APPROVED`. Accepts `owner_id` or inline `owner {}` and `media []` |
+| GET | `/animals/:id` | Full profile + media, ownerships, achievements, progeny, computed generation |
+| PATCH | `/animals/:id` | Partial update incl. parent links (cycle-checked) |
+| DELETE | `/animals/:id` | Hard delete, or **archive** when the animal is a recorded ancestor |
+| GET | `/animals/:id/pedigree?depth=n` | Recursive `sire` / `dam` tree, `by_generation`, `offspring` |
+| GET | `/pedigree/compatibility?sire_id=&dam_id=` | Shared ancestors, Wright's F, risk, warnings |
+| GET/POST | `/animals/:id/media` | Photos & videos, `life_stage`, `is_primary` |
+| PATCH/DELETE | `/animals/:id/media/:mediaId` | Set primary, edit caption / stage, remove |
+| GET/POST | `/animals/:id/ownerships` | Ordered timeline; can inline-create an owner |
+| PATCH/DELETE | `/animals/:id/ownerships/:ownershipId` | Reorder, re-date, remove |
+| GET/POST | `/owners` | Directory search `?q=&district=&village=`; `POST` is a public submission (202 + `PENDING`) |
+| GET/PATCH | `/owners/:id` | Profile + currently / previously owned cattle |
+| GET | `/achievements` | Global feed + leaderboard `?category=&q=&year=&sex=` |
+| GET/POST | `/animals/:id/achievements` | Includes `partner_animal_id` for paired Rekla bulls |
+| PATCH/DELETE | `/animals/:id/achievements/:achievementId` | Edit / remove |
+| GET | `/breeding-events` | Mating → expected calving → calf log |
+| GET | `/animals/:id/qr.svg` | QR badge used by the printable certificate |
+| GET | `/admin/queue` | **Admin.** Pending animals + breeders, submitter contacts, counters |
+| POST | `/admin/animals/:id/review` | **Admin.** `{"action":"approve"\|"reject"\|"pending","note":"…"}` |
+| POST | `/admin/owners/:id/review` | **Admin.** Same body; owners linked to an approved animal are published with it |
 
 Errors use standard codes with a JSON body:
 
@@ -225,7 +353,7 @@ front of it before letting untrusted editors in.
 
 ---
 
-## 5. Ember routes
+## 6. Ember routes
 
 ```
 /                                  dashboard
@@ -241,16 +369,23 @@ front of it before letting untrusted editors in.
 /owners  /owners/new  /owners/:id  /owners/:id/edit
 /achievements  /achievements/rekla  /achievements/jallikattu  /achievements/shows
 /mating-planner?sire=:id&dam=:id   compatibility simulator (bookmarkable)
+/admin                             review queue — unlinked, admin key required
 ```
 
-## 6. Seed data
+`/admin` is deliberately absent from the header, the mobile menu and the footer: it is reached by
+typing the URL. Submitting `/animals/new` or `/owners/new` without the key shows the
+"waiting for review" confirmation instead of redirecting to the (still hidden) profile.
 
-29 animals across six generations, 8 breeders/farms (Thambi Farms, Vellakoil Kangeyam Kudil,
-Kongu Semmai Farms…), 27 achievements (Rekla timings, *Pidipadaatha Kaalai* Jallikattu bulls,
-Best Kangeyam Dam, A2 lactation records, progeny milestones) and 3 stub ancestors — enough to
-exercise every screen, including a deliberately line-bred branch for the mating planner.
+## 7. Seed data (optional)
 
-## 7. Design notes
+The shipped database is **empty**. `npm run db:reset` loads the demo herd that the screenshots
+were taken with: 29 animals across six generations, 8 breeders/farms (Thambi Farms, Vellakoil
+Kangeyam Kudil, Kongu Semmai Farms…), 27 achievements (Rekla timings, *Pidipadaatha Kaalai*
+Jallikattu bulls, Best Kangeyam Dam, A2 lactation records, progeny milestones) and 3 stub
+ancestors — enough to exercise every screen, including a deliberately line-bred branch for the
+mating planner. Every seeded row is written as `APPROVED`, i.e. published.
+
+## 8. Design notes
 
 Warm paper, terracotta and ochre; serif display type; large touch targets and 3-step forms for
 rural mobile use; no CSS framework, no external CDN (fonts, icons and photographs are all

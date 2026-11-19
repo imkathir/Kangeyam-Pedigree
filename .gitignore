@@ -6,10 +6,13 @@ web/dist/
 web/tmp/
 web/.node_modules.ember-toc/
 
-# generated database (auto-seeded on first run)
+# generated database
 server/data/*.db
 server/data/*.db-shm
 server/data/*.db-wal
+
+# local backups (e.g. the demo herd snapshot taken before a wipe)
+.backup/
 
 # env / secrets / logs
 .env

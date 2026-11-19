@@ -73,8 +73,8 @@ export default class ApiService extends Service {
   async request(path, { method = 'GET', body } = {}) {
     const headers = {};
     if (body) headers['Content-Type'] = 'application/json';
-    const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(method);
-    if (mutating && this.writeKey) headers['x-api-key'] = this.writeKey;
+    // Sent on reads too: with a key the API returns pending rows for review.
+    if (this.writeKey) headers['x-api-key'] = this.writeKey;
 
     const res = await fetch(`${BASE}${path}`, {
       method,
@@ -112,7 +112,8 @@ export default class ApiService extends Service {
   }
 
   createAnimal(payload) {
-    return this.request('/animals', { method: 'POST', body: payload }).then((r) => r.data);
+    // Returns { data, meta } — a public submission comes back 202 + PENDING.
+    return this.request('/animals', { method: 'POST', body: payload });
   }
 
   updateAnimal(id, payload) {
@@ -197,7 +198,20 @@ export default class ApiService extends Service {
   }
 
   createOwner(payload) {
-    return this.request('/owners', { method: 'POST', body: payload }).then((r) => r.data);
+    return this.request('/owners', { method: 'POST', body: payload });
+  }
+
+  /* ── admin review queue (registry key required) ── */
+  getReviewQueue() {
+    return this.request('/admin/queue');
+  }
+
+  reviewAnimal(id, action, note) {
+    return this.request(`/admin/animals/${id}/review`, { method: 'POST', body: { action, note } });
+  }
+
+  reviewOwner(id, action, note) {
+    return this.request(`/admin/owners/${id}/review`, { method: 'POST', body: { action, note } });
   }
 
   updateOwner(id, payload) {

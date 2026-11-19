@@ -401,6 +401,8 @@ function summary(id) {
     current_district: a.current_district,
     is_stub: bool(a.is_stub),
     status: a.status,
+    review_status: a.review_status,
+    submitted_at: a.submitted_at,
     dob: a.dob,
     dob_precision: a.dob_precision,
     photo_url: media ? media.media_url : null,

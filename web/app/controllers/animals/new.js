@@ -23,6 +23,7 @@ export default class AnimalsNewController extends Controller {
   @tracked step = 1;
   @tracked saving = false;
   @tracked errors = [];
+  @tracked submitted = null; // set when the record was accepted for review
 
   @tracked sex = 'BULL';
   @tracked name_ta = '';
@@ -151,7 +152,17 @@ export default class AnimalsNewController extends Controller {
     this.saving = true;
     this.errors = [];
     try {
-      const animal = await this.api.createAnimal(this.buildPayload());
+      const { data: animal, meta } = await this.api.createAnimal(this.buildPayload());
+      if (meta?.review_status === 'PENDING') {
+        this.submitted = {
+          name_en: animal.name_en,
+          name_ta: animal.name_ta,
+          id: animal.id,
+          message: meta.message,
+        };
+        this.flash.success('Submitted for review.');
+        return;
+      }
       this.flash.success(`${animal.name_en} (${animal.name_ta}) registered at Generation ${animal.documented_generations}.`);
       this.router.transitionTo('animals.animal', animal.id);
     } catch (e) {
@@ -160,6 +171,20 @@ export default class AnimalsNewController extends Controller {
     } finally {
       this.saving = false;
     }
+  }
+
+  @action
+  startAnother() {
+    this.submitted = null;
+    this.errors = [];
+    this.step = 1;
+    this.name_en = '';
+    this.name_ta = '';
+    this.tag_or_reg_no = '';
+    this.distinctive_markings = '';
+    this.sire = null;
+    this.dam = null;
+    this.owner_id = '';
   }
 
   @action
@@ -188,7 +213,7 @@ export default class AnimalsNewController extends Controller {
     }
     this.creatingStub = true;
     try {
-      const animal = await this.api.createAnimal({
+      const { data: animal, meta } = await this.api.createAnimal({
         name_ta: this.stubNameTa.trim() || this.stubNameEn.trim(),
         name_en: this.stubNameEn.trim(),
         sex: this.stubFor === 'sire' ? 'BULL' : 'COW',
@@ -197,6 +222,10 @@ export default class AnimalsNewController extends Controller {
         current_district: this.current_district || null,
         is_stub: true,
       });
+      if (meta?.review_status === 'PENDING') {
+        this.errors = ['Stub ancestors are created by registry administrators only.'];
+        return;
+      }
       if (this.stubFor === 'sire') this.sire = animal;
       else this.dam = animal;
       this.flash.success(`Stub ancestor “${animal.name_en}” created — it can be completed later.`);

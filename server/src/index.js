@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const express = require('express');
 const QRCode = require('qrcode');
 
-const { db, seedIfEmpty, DB_MODE } = require('./db');
+const { db, seedIfEmpty, counts, DB_MODE } = require('./db');
 const {
   ENUMS, ApiError, ageFrom, documentedGenerations, ancestorMap, descendants,
   compatibility, summary, detail, serializeAchievement, serializeOwner,
@@ -27,15 +27,19 @@ app.use((req, _res, next) => {
 const api = express.Router();
 
 /* ──────────────────────────────────────────────────────────────────────────
- * WRITE ACCESS
- * Reads are always public. Writes (POST / PATCH / PUT / DELETE) are gated:
- *   WRITE_API_KEY set          → the key must be supplied, either as
- *                                `Authorization: Bearer <key>` or `x-api-key`.
- *   unset + not production     → open (local dev is frictionless)
- *   unset + production/Vercel  → locked; every write is refused with 401, so a
- *                                deployed demo can never be vandalised by default.
- * The key is compared in constant time. It is a shared secret for a small
- * registry team, not per-user auth — see README "Write access".
+ * WHO MAY WRITE
+ *
+ *   reads          → always public, but only APPROVED rows (see VISIBLE)
+ *   submissions    → anyone may POST /animals and POST /owners; the row lands as
+ *                    PENDING, is invisible in the app, and waits in /admin
+ *   everything else→ admins only (approve, reject, edit, delete, media, ownership,
+ *                    achievements, breeding events)
+ *
+ * An admin proves itself with the registry key, sent as
+ *   `Authorization: Bearer <key>` or `x-api-key: <key>`.
+ *   WRITE_API_KEY unset + local dev  → everyone is an admin (frictionless)
+ *   WRITE_API_KEY unset + production → nobody is an admin; submissions still queue
+ *                                      up, so the deployment can never be vandalised.
  * ────────────────────────────────────────────────────────────────────────── */
 const WRITE_KEY = (process.env.WRITE_API_KEY || process.env.KANGEYAM_WRITE_KEY || '').trim();
 const IS_PROD = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
@@ -54,24 +58,69 @@ function keyMatches(given) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+/** Marks the request — reads respect it too, so an admin can preview pending rows. */
+api.use((req, _res, next) => {
+  req.isAdmin = WRITE_MODE === 'open' ? true : keyMatches(suppliedKey(req));
+  next();
+});
+
+/** The only routes a stranger may POST to: they create PENDING records. */
+const PUBLIC_POSTS = new Set(['POST /animals', 'POST /owners']);
+
 api.use((req, res, next) => {
   if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
-  if (WRITE_MODE === 'open') return next();
+  if (req.isAdmin) return next();
+  const route = `${req.method} ${req.path.replace(/\/+$/, '')}`;
+  if (PUBLIC_POSTS.has(route)) return next();
   if (WRITE_MODE === 'locked') {
     return next(new ApiError(
       401,
       'This deployment is read-only',
-      'Writes are disabled because no WRITE_API_KEY is configured for this environment.',
+      'No WRITE_API_KEY is configured for this environment, so nothing can be approved or edited. Submissions are still accepted and queued.',
     ));
   }
-  if (keyMatches(suppliedKey(req))) return next();
   return next(new ApiError(
     401,
-    'Write access requires a key',
-    'Open the 🔑 Write key panel in the header and paste the registry key to unlock editing in this browser, or send it as "Authorization: Bearer <key>" / "x-api-key: <key>".',
+    'Admin access requires a key',
+    'Open the 🔑 Write key panel in the header and paste the registry key, or send it as "Authorization: Bearer <key>" / "x-api-key: <key>".',
   ));
 });
 
+/** Rows the public may see. Everything else needs req.isAdmin. */
+const VISIBLE = "archived_at IS NULL AND review_status = 'APPROVED'";
+
+function requireAdmin(req) {
+  if (req.isAdmin) return;
+  throw new ApiError(403, 'Admin access requires a key', 'This endpoint is for registry administrators.');
+}
+
+const nowIso = () => new Date().toISOString();
+
+/** "19 Nov 2026, 4:57 pm" — the queue is read by people, not machines. */
+function humanDate(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata',
+  });
+}
+const registryCounts = () => counts();
+
+/** Subsidy for the review flow: submits keep the contact of whoever filed them. */
+function submitterFields(body, isAdmin) {
+  if (isAdmin) {
+    return { review_status: 'APPROVED', reviewed_at: nowIso(), submitted_at: nowIso() };
+  }
+  const clean = (v) => (v === undefined || v === null ? null : String(v).trim().slice(0, 120) || null);
+  return {
+    review_status: 'PENDING',
+    submitted_at: nowIso(),
+    submitter_name: clean(body.submitter_name),
+    submitter_phone: clean(body.submitter_phone),
+  };
+}
 
 /* ── helpers ────────────────────────────────────────────────────────────── */
 function paginate(req, rows) {
@@ -97,7 +146,7 @@ const qAchievementFeed = db.prepare(`
   FROM achievements a
   JOIN animals an ON an.id = a.animal_id
   LEFT JOIN animals p ON p.id = a.partner_animal_id
-  WHERE an.archived_at IS NULL
+  WHERE an.archived_at IS NULL AND an.review_status = 'APPROVED'
 `);
 
 function feedRow(r) {
@@ -120,16 +169,22 @@ function feedRow(r) {
 /* ──────────────────────────────────────────────────────────────────────────
  * META / STATS
  * ────────────────────────────────────────────────────────────────────────── */
-api.get('/health', (_req, res) => {
-  const animals = db.prepare('SELECT COUNT(*) AS n FROM animals').get().n;
+api.get('/health', (req, res) => {
+  const counts = registryCounts();
   res.json({
     data: {
       status: 'ok',
-      animals,
+      animals: counts.animals,
+      owners: counts.owners,
       database: DB_MODE,
       serverless: Boolean(process.env.VERCEL),
       writes: WRITE_MODE,
       reads: 'public',
+      submissions: 'open',
+      is_admin: req.isAdmin,
+      pending: req.isAdmin
+        ? { animals: counts.pending_animals, owners: counts.pending_owners }
+        : undefined,
     },
   });
 });
@@ -143,25 +198,28 @@ api.get('/meta', (_req, res) => {
   });
 });
 
-api.get('/stats', (_req, res) => {
+api.get('/stats', (req, res) => {
   const one = (sql) => db.prepare(sql).get();
-  const bulls = one("SELECT COUNT(*) AS n FROM animals WHERE sex = 'BULL' AND archived_at IS NULL").n;
-  const cows = one("SELECT COUNT(*) AS n FROM animals WHERE sex = 'COW' AND archived_at IS NULL").n;
-  const stubs = one('SELECT COUNT(*) AS n FROM animals WHERE is_stub = 1 AND archived_at IS NULL').n;
-  const owners = one('SELECT COUNT(*) AS n FROM owners').n;
-  const achievements = one('SELECT COUNT(*) AS n FROM achievements').n;
-  const villages = one('SELECT COUNT(*) AS n FROM (SELECT DISTINCT current_village FROM animals WHERE current_village IS NOT NULL)').n;
-  const all = db.prepare('SELECT id FROM animals WHERE archived_at IS NULL').all();
+  const bulls = one(`SELECT COUNT(*) AS n FROM animals WHERE sex = 'BULL' AND ${VISIBLE}`).n;
+  const cows = one(`SELECT COUNT(*) AS n FROM animals WHERE sex = 'COW' AND ${VISIBLE}`).n;
+  const stubs = one(`SELECT COUNT(*) AS n FROM animals WHERE is_stub = 1 AND ${VISIBLE}`).n;
+  const owners = one(`SELECT COUNT(*) AS n FROM owners WHERE review_status = 'APPROVED'`).n;
+  const achievements = one(
+    `SELECT COUNT(*) AS n FROM achievements a JOIN animals an ON an.id = a.animal_id WHERE an.${VISIBLE.replaceAll(' AND ', ' AND an.')}`
+  ).n;
+  const villages = one(`SELECT COUNT(*) AS n FROM (SELECT DISTINCT current_village FROM animals WHERE current_village IS NOT NULL AND ${VISIBLE})`).n;
+  const all = db.prepare(`SELECT id FROM animals WHERE ${VISIBLE}`).all();
   const generations = all.map((a) => documentedGenerations(a.id));
   const deepest = generations.length ? Math.max(...generations) : 0;
   const byColor = db.prepare(
-    `SELECT current_color, COUNT(*) AS count FROM animals WHERE archived_at IS NULL GROUP BY current_color ORDER BY count DESC`
+    `SELECT current_color, COUNT(*) AS count FROM animals WHERE ${VISIBLE} GROUP BY current_color ORDER BY count DESC`
   ).all().map((r) => ({ color: r.current_color, label: ENUMS.colors[r.current_color], count: r.count }));
   const byCategory = db.prepare(
-    'SELECT category, COUNT(*) AS count FROM achievements GROUP BY category ORDER BY count DESC'
+    `SELECT a.category, COUNT(*) AS count FROM achievements a JOIN animals an ON an.id = a.animal_id
+     WHERE an.${VISIBLE.replaceAll(' AND ', ' AND an.')} GROUP BY a.category ORDER BY count DESC`
   ).all().map((r) => ({ category: r.category, label: ENUMS.categories[r.category], count: r.count }));
   const recent = db.prepare(
-    'SELECT * FROM animals WHERE archived_at IS NULL ORDER BY created_at DESC, id DESC LIMIT 6'
+    `SELECT * FROM animals WHERE ${VISIBLE} ORDER BY created_at DESC, id DESC LIMIT 6`
   ).all().map((a) => summary(a));
 
   res.json({
@@ -173,6 +231,7 @@ api.get('/stats', (_req, res) => {
       by_color: byColor,
       by_category: byCategory,
       recent_animals: recent,
+      pending: req.isAdmin ? registryCounts().pending_animals + registryCounts().pending_owners : undefined,
     },
   });
 });
@@ -184,7 +243,10 @@ api.get('/animals', (req, res) => {
   const q = req.query;
   const where = [];
   const params = [];
+  const wantsPending = req.isAdmin && bool(q.include_pending);
   if (!bool(q.include_archived)) where.push('archived_at IS NULL');
+  if (!wantsPending) where.push("review_status = 'APPROVED'");
+  if (q.review_status) { where.push('review_status = ?'); params.push(String(q.review_status).toUpperCase()); }
   if (q.sex) { where.push('sex = ?'); params.push(String(q.sex).toUpperCase()); }
   if (q.color) { where.push('current_color = ?'); params.push(String(q.color).toUpperCase()); }
   if (q.village) { where.push('LOWER(current_village) LIKE ?'); params.push(`%${String(q.village).toLowerCase()}%`); }
@@ -215,7 +277,7 @@ api.get('/animals', (req, res) => {
     s.age = ageFrom(a.dob, a.dob_precision, a.dentition_stage);
     s.achievement_count = qAchievements.all(a.id).length;
     s.offspring_count = db.prepare(
-      'SELECT COUNT(*) AS n FROM animals WHERE (sire_id = ? OR dam_id = ?) AND archived_at IS NULL'
+      `SELECT COUNT(*) AS n FROM animals WHERE (sire_id = ? OR dam_id = ?) AND ${VISIBLE}`
     ).get(a.id, a.id).n;
     s.media_count = qMedia.all(a.id).length;
     s.label_current_color = ENUMS.colors[a.current_color];
@@ -269,6 +331,8 @@ api.post('/animals', (req, res) => {
     if (dupe) throw new ApiError(409, `Tag ${data.tag_or_reg_no} is already used by animal #${dupe.id}`);
   }
 
+  Object.assign(data, submitterFields(body, req.isAdmin));
+
   const cols = Object.keys(data);
   const sql = `INSERT INTO animals (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`;
   const info = db.prepare(sql).run(...cols.map((c) => data[c]));
@@ -277,7 +341,7 @@ api.post('/animals', (req, res) => {
   // optional inline ownership + media in the same call (fast rural entry)
   const created = { owners: [], media: [] };
   if (req.body.owner_id || (req.body.owner && req.body.owner.name_en)) {
-    const ownerId = req.body.owner_id || createOwnerInline(req.body.owner);
+    const ownerId = req.body.owner_id || createOwnerInline(req.body.owner, req.isAdmin);
     db.prepare(
       `INSERT INTO animal_ownerships (animal_id, owner_id, role, sequence_order, from_date, place_note)
        VALUES (?, ?, ?, 1, ?, ?)`
@@ -295,11 +359,32 @@ api.post('/animals', (req, res) => {
     }
   }
   clearCaches();
+  if (!req.isAdmin) {
+    // A submission is not a published record: confirm it, do not expose the profile.
+    return res.status(202).json({
+      data: {
+        id,
+        name_ta: data.name_ta,
+        name_en: data.name_en,
+        review_status: 'PENDING',
+        submitted_at: data.submitted_at,
+      },
+      meta: {
+        review_status: 'PENDING',
+        message: 'Thanks — this animal is queued for review and will appear in the registry once an administrator approves it.',
+      },
+    });
+  }
   res.status(201).json({ data: detail(id) });
 });
 
 api.get('/animals/:id', (req, res) => {
-  res.json({ data: detail(req.params.id) });
+  const row = getAnimal.get(req.params.id);
+  if (!row) throw new ApiError(404, `Animal #${req.params.id} not found`);
+  if (!req.isAdmin && (row.review_status !== 'APPROVED' || row.archived_at)) {
+    throw new ApiError(404, `Animal #${req.params.id} not found`);
+  }
+  res.json({ data: detail(row.id) });
 });
 
 api.patch('/animals/:id', (req, res) => {
@@ -472,17 +557,21 @@ api.delete('/animals/:id/media/:mediaId', (req, res) => {
 });
 
 /* ── ownerships ─────────────────────────────────────────────────────────── */
-function createOwnerInline(owner) {
+function createOwnerInline(owner, isAdmin = false) {
   if (!owner || !owner.name_en || !String(owner.name_en).trim()) {
     throw new ApiError(422, 'owner.name_en is required when creating an owner inline');
   }
   const info = db.prepare(
-    `INSERT INTO owners (name_ta, name_en, farm_name, phone, village, district, is_contact_public)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO owners (name_ta, name_en, farm_name, phone, village, district, is_contact_public,
+                         review_status, submitted_at, reviewed_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     owner.name_ta || null, String(owner.name_en).trim(), owner.farm_name || null,
     owner.phone || null, owner.village || null, owner.district || null,
-    owner.is_contact_public ? 1 : 0
+    owner.is_contact_public ? 1 : 0,
+    isAdmin ? 'APPROVED' : 'PENDING',
+    isAdmin ? nowIso() : nowIso(),
+    isAdmin ? nowIso() : null
   );
   return Number(info.lastInsertRowid);
 }
@@ -621,14 +710,14 @@ api.get('/achievements', (req, res) => {
      FROM achievements a
      JOIN animals an ON an.id = a.animal_id
      LEFT JOIN animals p ON p.id = a.partner_animal_id
-     WHERE an.archived_at IS NULL ${where.length ? `AND ${where.join(' AND ')}` : ''}
+     WHERE an.archived_at IS NULL AND an.review_status = 'APPROVED' ${where.length ? `AND ${where.join(' AND ')}` : ''}
      ORDER BY COALESCE(a.event_date, '0000') DESC, a.id DESC`
   ).all(...params).map(feedRow);
 
   const leaderboard = db.prepare(
     `SELECT an.id, an.name_ta, an.name_en, an.sex, an.current_color, COUNT(*) AS wins
      FROM achievements a JOIN animals an ON an.id = a.animal_id
-     ${q.category ? 'WHERE a.category = ?' : ''}
+     WHERE an.archived_at IS NULL AND an.review_status = 'APPROVED' ${q.category ? 'AND a.category = ?' : ''}
      GROUP BY an.id ORDER BY wins DESC, an.name_en ASC LIMIT 8`
   ).all(...(q.category ? [String(q.category).toUpperCase()] : [])).map((r) => ({
     ...r, href: `/animals/${r.id}`, color_label: ENUMS.colors[r.current_color],
@@ -640,7 +729,7 @@ api.get('/achievements', (req, res) => {
 
 api.get('/animals/:id/achievements', (req, res) => {
   const animal = getAnimal.get(req.params.id);
-  if (!animal) throw new ApiError(404, 'Animal not found');
+  if (!animal || (!req.isAdmin && animal.review_status !== 'APPROVED')) throw new ApiError(404, 'Animal not found');
   const rows = qAchievements.all(animal.id).map((r) => ({ ...serializeAchievement(r), animal_id: animal.id }));
   res.json({ data: rows, meta: { total: rows.length } });
 });
@@ -694,6 +783,9 @@ api.get('/owners', (req, res) => {
   }
   if (q.district) { where.push("LOWER(COALESCE(district,'')) LIKE ?"); params.push(`%${String(q.district).toLowerCase()}%`); }
   if (q.village) { where.push("LOWER(COALESCE(village,'')) LIKE ?"); params.push(`%${String(q.village).toLowerCase()}%`); }
+  const wantsPending = req.isAdmin && bool(q.include_pending);
+  if (!wantsPending) where.push("review_status = 'APPROVED'");
+  if (q.review_status) { where.push('review_status = ?'); params.push(String(q.review_status).toUpperCase()); }
 
   const rows = db.prepare(`SELECT * FROM owners ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY name_en`).all(...params)
     .map((o) => {
@@ -711,25 +803,38 @@ api.get('/owners', (req, res) => {
 api.post('/owners', (req, res) => {
   const b = req.body || {};
   if (!b.name_en || !String(b.name_en).trim()) throw new ApiError(422, 'Validation failed', ['name_en is required']);
+  const review = submitterFields(b, req.isAdmin);
   const info = db.prepare(
-    `INSERT INTO owners (name_ta, name_en, farm_name, phone, village, district, is_contact_public, notes)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO owners (name_ta, name_en, farm_name, phone, village, district, is_contact_public, notes,
+                         review_status, submitted_at, reviewed_at, submitter_name, submitter_phone)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     b.name_ta || null, String(b.name_en).trim(), b.farm_name || null, b.phone || null,
-    b.village || null, b.district || null, b.is_contact_public ? 1 : 0, b.notes || null
+    b.village || null, b.district || null, b.is_contact_public ? 1 : 0, b.notes || null,
+    review.review_status, review.submitted_at || null, review.reviewed_at || null,
+    review.submitter_name || null, review.submitter_phone || null
   );
   const owner = db.prepare('SELECT * FROM owners WHERE id = ?').get(info.lastInsertRowid);
+  if (!req.isAdmin) {
+    return res.status(202).json({
+      data: { id: owner.id, name_en: owner.name_en, name_ta: owner.name_ta, review_status: 'PENDING' },
+      meta: {
+        review_status: 'PENDING',
+        message: 'Thanks — this breeder is queued for review and will appear in the directory once approved.',
+      },
+    });
+  }
   res.status(201).json({ data: serializeOwner(owner) });
 });
 
 api.get('/owners/:id', (req, res) => {
   const owner = db.prepare('SELECT * FROM owners WHERE id = ?').get(req.params.id);
-  if (!owner) throw new ApiError(404, 'Owner not found');
+  if (!owner || (!req.isAdmin && owner.review_status !== 'APPROVED')) throw new ApiError(404, 'Owner not found');
   const links = db.prepare(
     `SELECT o.*, a.name_ta, a.name_en, a.sex, a.current_color, a.current_village, a.is_stub,
             (SELECT media_url FROM animal_media m WHERE m.animal_id = a.id ORDER BY is_primary DESC, id LIMIT 1) AS photo_url
      FROM animal_ownerships o JOIN animals a ON a.id = o.animal_id
-     WHERE o.owner_id = ? AND a.archived_at IS NULL
+     WHERE o.owner_id = ? AND a.archived_at IS NULL AND a.review_status = 'APPROVED'
      ORDER BY CASE o.role WHEN 'CURRENT_OWNER' THEN 0 WHEN 'BREEDER' THEN 1 ELSE 2 END,
               o.sequence_order ASC`
   ).all(owner.id).map((r) => ({
@@ -780,6 +885,124 @@ api.patch('/owners/:id', (req, res) => {
 });
 
 /* ── breeding events ────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────────────────────
+ * ADMIN — review queue
+ * Only reachable with the registry key; never linked from the public app.
+ * ────────────────────────────────────────────────────────────────────────── */
+function queueAnimal(row) {
+  const owners = db.prepare(
+    `SELECT o.id, o.name_en, o.name_ta, o.review_status, o.phone, o.village, o.district, ow.role
+     FROM animal_ownerships ow JOIN owners o ON o.id = ow.owner_id
+     WHERE ow.animal_id = ? ORDER BY ow.sequence_order`
+  ).all(row.id);
+  const media = db.prepare('SELECT COUNT(*) AS n FROM animal_media WHERE animal_id = ?').get(row.id).n;
+  const parentName = (id) => (id ? (getAnimal.get(id) || {}).name_en || null : null);
+  return {
+    ...summary(row),
+    review_status: row.review_status,
+    submitted_at: row.submitted_at,
+    submitted_label: humanDate(row.submitted_at) || humanDate(row.created_at),
+    submitter_name: row.submitter_name,
+    submitter_phone: row.submitter_phone,
+    notes: row.notes,
+    sire_name: parentName(row.sire_id),
+    dam_name: parentName(row.dam_id),
+    media_count: media,
+    owners,
+    pending_owners: owners.filter((o) => o.review_status === 'PENDING').length,
+  };
+}
+
+api.get('/admin/queue', (req, res) => {
+  requireAdmin(req);
+  const animalRows = db.prepare(
+    `SELECT * FROM animals WHERE review_status = 'PENDING'
+     ORDER BY COALESCE(submitted_at, created_at) DESC, id DESC`
+  ).all();
+  const ownerRows = db.prepare(
+    `SELECT * FROM owners WHERE review_status = 'PENDING'
+     ORDER BY COALESCE(submitted_at, created_at) DESC, id DESC`
+  ).all().map((o) => ({
+    ...serializeOwner(o),
+    href: `/owners/${o.id}`,
+    submitted_label: humanDate(o.submitted_at) || humanDate(o.created_at),
+    links: db.prepare('SELECT COUNT(*) AS n FROM animal_ownerships WHERE owner_id = ?').get(o.id).n,
+    animals: db.prepare(
+      `SELECT a.id, a.name_en, a.name_ta, a.sex, a.review_status
+       FROM animal_ownerships ow JOIN animals a ON a.id = ow.animal_id
+       WHERE ow.owner_id = ? ORDER BY a.id DESC LIMIT 5`
+    ).all(o.id),
+  }));
+
+  res.json({
+    data: { animals: animalRows.map(queueAnimal), owners: ownerRows },
+    meta: {
+      counts: {
+        pending_animals: animalRows.length,
+        pending_owners: ownerRows.length,
+        approved_animals: db.prepare("SELECT COUNT(*) AS n FROM animals WHERE review_status = 'APPROVED' AND archived_at IS NULL").get().n,
+        approved_owners: db.prepare("SELECT COUNT(*) AS n FROM owners WHERE review_status = 'APPROVED'").get().n,
+        rejected_animals: db.prepare("SELECT COUNT(*) AS n FROM animals WHERE review_status = 'REJECTED'").get().n,
+      },
+      writes: WRITE_MODE,
+    },
+  });
+});
+
+/** Approving an animal also publishes the owner records that arrived with it. */
+function publishLinkedOwners(animalId, note) {
+  const linked = db.prepare(
+    `SELECT o.id FROM animal_ownerships ow JOIN owners o ON o.id = ow.owner_id
+     WHERE ow.animal_id = ? AND o.review_status = 'PENDING'`
+  ).all(animalId);
+  for (const o of linked) {
+    db.prepare(`UPDATE owners SET review_status = 'APPROVED', reviewed_at = ?, review_note = ? WHERE id = ?`)
+      .run(nowIso(), note || null, o.id);
+  }
+  return linked.length;
+}
+
+api.post('/admin/animals/:id/review', (req, res) => {
+  requireAdmin(req);
+  const row = getAnimal.get(req.params.id);
+  if (!row) throw new ApiError(404, `Animal #${req.params.id} not found`);
+  const action = String((req.body || {}).action || '').toLowerCase();
+  if (!['approve', 'reject', 'pending'].includes(action)) {
+    throw new ApiError(422, 'Validation failed', ["action must be one of 'approve', 'reject', 'pending'"]);
+  }
+  const note = (req.body || {}).note ? String((req.body || {}).note).slice(0, 500) : null;
+  const status = action === 'approve' ? 'APPROVED' : action === 'reject' ? 'REJECTED' : 'PENDING';
+  db.prepare('UPDATE animals SET review_status = ?, reviewed_at = ?, review_note = ? WHERE id = ?')
+    .run(status, nowIso(), note, row.id);
+  clearCaches();
+  const approvedOwners = status === 'APPROVED' ? publishLinkedOwners(row.id, note) : 0;
+  res.json({
+    data: { id: row.id, review_status: status, reviewed_at: nowIso(), approved_owners: approvedOwners },
+    meta: {
+      message: status === 'APPROVED'
+        ? `Published.${approvedOwners ? ` ${approvedOwners} linked owner record(s) approved too.` : ''}`
+        : status === 'REJECTED'
+          ? 'Rejected — it stays hidden from the registry.'
+          : 'Moved back to the queue.',
+    },
+  });
+});
+
+api.post('/admin/owners/:id/review', (req, res) => {
+  requireAdmin(req);
+  const owner = db.prepare('SELECT * FROM owners WHERE id = ?').get(req.params.id);
+  if (!owner) throw new ApiError(404, `Owner #${req.params.id} not found`);
+  const action = String((req.body || {}).action || '').toLowerCase();
+  if (!['approve', 'reject', 'pending'].includes(action)) {
+    throw new ApiError(422, 'Validation failed', ["action must be one of 'approve', 'reject', 'pending'"]);
+  }
+  const note = (req.body || {}).note ? String((req.body || {}).note).slice(0, 500) : null;
+  const status = action === 'approve' ? 'APPROVED' : action === 'reject' ? 'REJECTED' : 'PENDING';
+  db.prepare('UPDATE owners SET review_status = ?, reviewed_at = ?, review_note = ? WHERE id = ?')
+    .run(status, nowIso(), note, owner.id);
+  res.json({ data: { id: owner.id, review_status: status, reviewed_at: nowIso() } });
+});
+
 api.get('/breeding-events', (req, res) => {
   const rows = db.prepare(
     `SELECT b.*, s.name_ta AS sire_name_ta, s.name_en AS sire_name_en,

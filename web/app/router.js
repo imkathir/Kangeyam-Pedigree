@@ -38,6 +38,9 @@ Router.map(function () {
     this.route('shows');       // /achievements/shows
   });
 
+  // Admin review queue — intentionally unlinked; reachable only by typing /admin
+  this.route('admin'); // /admin
+
   // Mating & Lineage Compatibility Simulator
   this.route('mating-planner'); // /mating-planner?sire=:id&dam=:id
 

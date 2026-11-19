@@ -5,7 +5,7 @@ const fs = require('fs');
 const express = require('express');
 const QRCode = require('qrcode');
 
-const { db, seedIfEmpty } = require('./db');
+const { db, seedIfEmpty, DB_MODE } = require('./db');
 const {
   ENUMS, ApiError, ageFrom, documentedGenerations, ancestorMap, descendants,
   compatibility, summary, detail, serializeAchievement, serializeOwner,
@@ -72,6 +72,11 @@ function feedRow(r) {
 /* ──────────────────────────────────────────────────────────────────────────
  * META / STATS
  * ────────────────────────────────────────────────────────────────────────── */
+api.get('/health', (_req, res) => {
+  const animals = db.prepare('SELECT COUNT(*) AS n FROM animals').get().n;
+  res.json({ data: { status: 'ok', animals, database: DB_MODE, serverless: Boolean(process.env.VERCEL) } });
+});
+
 api.get('/meta', (_req, res) => {
   res.json({
     data: {
@@ -760,8 +765,12 @@ app.use((err, _req, res, _next) => {
 
 /* ── static: Ember build + uploaded media ───────────────────────────────── */
 const WEB_DIST = path.join(__dirname, '..', '..', 'web', 'dist');
-const PUBLIC = path.join(__dirname, '..', 'public');
-app.use('/media', express.static(path.join(PUBLIC, 'media'), { maxAge: '1h' }));
+const MEDIA_DIRS = [
+  path.join(__dirname, '..', '..', 'web', 'public', 'media'),
+  path.join(__dirname, '..', '..', 'web', 'dist', 'media'),
+  path.join(__dirname, '..', 'public', 'media'),
+].filter((dir) => fs.existsSync(dir));
+for (const dir of MEDIA_DIRS) app.use('/media', express.static(dir, { maxAge: '1h' }));
 if (fs.existsSync(WEB_DIST)) {
   app.use(express.static(WEB_DIST, { index: false }));
   app.get(/^\/(?!api|media).*/, (_req, res) => res.sendFile(path.join(WEB_DIST, 'index.html')));

@@ -9,7 +9,7 @@
         "src/index.js": {
           "memory": 1024,
           "maxDuration": 30,
-          "includeFiles": ["src/**", "node_modules/**"]
+          "includeFiles": "{src/**,node_modules/**}"
         }
       }
     },

@@ -363,8 +363,8 @@ shown as the secondary line.
 **Photos.** Every animal carries an optional gallery of up to **10** images
 (`MAX_MEDIA_PER_ANIMAL` in `server/src/lib.js` — one number to raise). The data model is
 one `animal_media` row per image with no fixed columns, so scaling to *n* images needs no
-schema change, only that constant. Owners attach photos **while registering** (step 1 of the
-wizard) or later from the gallery — files are resized on-device first (≤1600 px JPEG) because
+schema change, only that constant. Owners attach photos **while registering** (on the
+registration form) or later from the gallery — files are resized on-device first (≤1600 px JPEG) because
 uploads travel inside the JSON request, which Vercel caps at 4.5 MB. The gallery no longer
 offers free-text image URLs; the API still accepts `media_url` for programmatic clients.
 
@@ -382,7 +382,7 @@ line, so a Tamil reader never loses the Latin spelling they can type into search
 ```
 /                                  dashboard
 /animals                           registry + filters (all query-param driven, shareable)
-/animals/new                       3-step fast registration wizard (save at step 1 = Gen 0)
+/animals/new                       single-page registration form (parents optional → Gen 0)
 /animals/:id                       profile overview (owner, achievements, progeny, depth ladder)
 /animals/:id/pedigree?depth=2..5   interactive 0-to-n family tree
 /animals/:id/achievements          race / show / dairy / progeny log + add form
@@ -411,6 +411,6 @@ mating planner. Every seeded row is written as `APPROVED`, i.e. published.
 
 ## 9. Design notes
 
-Warm paper, terracotta and ochre; serif display type; large touch targets and 3-step forms for
+Warm paper, terracotta and ochre; serif display type; large touch targets and single-page forms for
 rural mobile use; no CSS framework, no external CDN (fonts, icons and photographs are all
 self-hosted) so the registry works on a slow village connection.

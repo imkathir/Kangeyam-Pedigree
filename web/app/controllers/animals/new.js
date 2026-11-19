@@ -30,7 +30,6 @@ export default class AnimalsNewController extends Controller {
   dentitions = TEETH;
   districts = DISTRICTS;
 
-  @tracked step = 1;
   @tracked saving = false;
   @tracked errors = [];
   @tracked submitted = null; // set when the record was accepted for review
@@ -59,10 +58,6 @@ export default class AnimalsNewController extends Controller {
   @tracked stubName = '';
   @tracked stubVillage = '';
   @tracked creatingStub = false;
-
-  get isCalf() {
-    return this.step === 1;
-  }
 
   get summaryName() {
     return this.name || 'New animal';
@@ -121,24 +116,7 @@ export default class AnimalsNewController extends Controller {
     if (value === 'BULL') this.sire = null;
   }
 
-  @action
-  next() {
-    if (this.step === 1 && !this.validateStep1()) return;
-    this.step = Math.min(3, this.step + 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  @action
-  back() {
-    this.step = Math.max(1, this.step - 1);
-  }
-
-  @action
-  goto(step) {
-    this.step = step;
-  }
-
-  validateStep1() {
+  validateName() {
     const errs = [];
     if (!this.name.trim()) errs.push('A name is required — type it in Tamil or English.');
     this.errors = errs;
@@ -183,8 +161,8 @@ export default class AnimalsNewController extends Controller {
   @action
   async save(event) {
     event?.preventDefault?.();
-    if (!this.validateStep1()) {
-      this.step = 1;
+    if (!this.validateName()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     this.saving = true;
@@ -205,7 +183,7 @@ export default class AnimalsNewController extends Controller {
       this.router.transitionTo('animals.animal', animal.id);
     } catch (e) {
       this.errors = e.list || [e.message];
-      this.step = 1;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       this.saving = false;
     }
@@ -215,7 +193,6 @@ export default class AnimalsNewController extends Controller {
   startAnother() {
     this.submitted = null;
     this.errors = [];
-    this.step = 1;
     this.name = '';
     this.photos = [];
     this.tag_or_reg_no = '';

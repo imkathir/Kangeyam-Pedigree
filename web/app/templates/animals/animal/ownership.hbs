@@ -42,12 +42,9 @@
           </div>
         {{else}}
           <div class="field">
-            <label>{{tr "Name (English)"}}<span class="req">*</span></label>
-            <input type="text" value={{nm this.newOwner}} {{on "input" (fn this.setNewOwner "name_en")}}>
-          </div>
-          <div class="field">
-            <label>{{tr "Name (Tamil)"}}</label>
-            <input type="text" class="alt-name" value={{nm2 this.newOwner}} {{on "input" (fn this.setNewOwner "name_ta")}}>
+            <label>{{tr "Name"}}<span class="req">*</span></label>
+            <input type="text" value={{this.newOwner.name}} placeholder="முருகேசன் · Murugesan" {{on "input" (fn this.setNewOwner "name")}}>
+            <div class="hint">{{tr "Type it in Tamil or English — your choice."}}</div>
           </div>
           <div class="field">
             <label>{{tr "Farm / family title"}}</label>

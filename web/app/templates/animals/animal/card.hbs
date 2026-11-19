@@ -76,12 +76,12 @@
     <div class="table-wrap">
       <table class="cert-table">
         <tbody>
-          <tr><td>{{tr "Sire (தந்தை)"}}</td><td>{{if this.animal.sire this.animal.sire.name_en "Unknown"}}{{#if this.animal.sire}} <span class="ta muted small">{{nm2 this.animal.sire}}</span>{{/if}}</td></tr>
-          <tr><td>{{tr "Sire's sire"}}</td><td>{{or this.grandparents.sireSire.name_en "—"}}{{#if this.grandparents.sireSire}} <span class="ta muted small">{{nm2 this.grandparents.sireSire}}</span>{{/if}}</td></tr>
-          <tr><td>{{tr "Sire's dam"}}</td><td>{{or this.grandparents.sireDam.name_en "—"}}{{#if this.grandparents.sireDam}} <span class="ta muted small">{{nm2 this.grandparents.sireDam}}</span>{{/if}}</td></tr>
-          <tr><td>{{tr "Dam (தாய்)"}}</td><td>{{if this.animal.dam this.animal.dam.name_en "Unknown"}}{{#if this.animal.dam}} <span class="ta muted small">{{nm2 this.animal.dam}}</span>{{/if}}</td></tr>
-          <tr><td>{{tr "Dam's sire"}}</td><td>{{or this.grandparents.damSire.name_en "—"}}{{#if this.grandparents.damSire}} <span class="ta muted small">{{nm2 this.grandparents.damSire}}</span>{{/if}}</td></tr>
-          <tr><td>{{tr "Dam's dam"}}</td><td>{{or this.grandparents.damDam.name_en "—"}}{{#if this.grandparents.damDam}} <span class="ta muted small">{{nm2 this.grandparents.damDam}}</span>{{/if}}</td></tr>
+          <tr><td>{{tr "Sire (தந்தை)"}}</td><td>{{if this.animal.sire (nm this.animal.sire) (tr "Unknown")}}{{#if this.animal.sire}} <span class="ta muted small">{{nm2 this.animal.sire}}</span>{{/if}}</td></tr>
+          <tr><td>{{tr "Sire's sire"}}</td><td>{{if this.grandparents.sireSire (nm this.grandparents.sireSire) "—"}}{{#if this.grandparents.sireSire}} <span class="ta muted small">{{nm2 this.grandparents.sireSire}}</span>{{/if}}</td></tr>
+          <tr><td>{{tr "Sire's dam"}}</td><td>{{if this.grandparents.sireDam (nm this.grandparents.sireDam) "—"}}{{#if this.grandparents.sireDam}} <span class="ta muted small">{{nm2 this.grandparents.sireDam}}</span>{{/if}}</td></tr>
+          <tr><td>{{tr "Dam (தாய்)"}}</td><td>{{if this.animal.dam (nm this.animal.dam) (tr "Unknown")}}{{#if this.animal.dam}} <span class="ta muted small">{{nm2 this.animal.dam}}</span>{{/if}}</td></tr>
+          <tr><td>{{tr "Dam's sire"}}</td><td>{{if this.grandparents.damSire (nm this.grandparents.damSire) "—"}}{{#if this.grandparents.damSire}} <span class="ta muted small">{{nm2 this.grandparents.damSire}}</span>{{/if}}</td></tr>
+          <tr><td>{{tr "Dam's dam"}}</td><td>{{if this.grandparents.damDam (nm this.grandparents.damDam) "—"}}{{#if this.grandparents.damDam}} <span class="ta muted small">{{nm2 this.grandparents.damDam}}</span>{{/if}}</td></tr>
         </tbody>
       </table>
     </div>

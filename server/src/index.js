@@ -10,7 +10,7 @@ const { db, seedIfEmpty, counts, DB_MODE } = require('./db');
 const {
   ENUMS, ApiError, ageFrom, documentedGenerations, ancestorMap, descendants,
   compatibility, summary, detail, serializeAchievement, serializeOwner,
-  validateAnimalPayload, clearCaches, bool, getAnimal, qMedia, qOwnerships, qAchievements,
+  validateAnimalPayload, resolveNames, clearCaches, bool, getAnimal, qMedia, qOwnerships, qAchievements,
 } = require('./lib');
 
 seedIfEmpty();
@@ -340,7 +340,7 @@ api.post('/animals', (req, res) => {
 
   // optional inline ownership + media in the same call (fast rural entry)
   const created = { owners: [], media: [] };
-  if (req.body.owner_id || (req.body.owner && req.body.owner.name_en)) {
+  if (req.body.owner_id || (req.body.owner && (req.body.owner.name_en || req.body.owner.name || req.body.owner.name_ta))) {
     const ownerId = req.body.owner_id || createOwnerInline(req.body.owner, req.isAdmin);
     db.prepare(
       `INSERT INTO animal_ownerships (animal_id, owner_id, role, sequence_order, from_date, place_note)
@@ -558,15 +558,15 @@ api.delete('/animals/:id/media/:mediaId', (req, res) => {
 
 /* ── ownerships ─────────────────────────────────────────────────────────── */
 function createOwnerInline(owner, isAdmin = false) {
-  if (!owner || !owner.name_en || !String(owner.name_en).trim()) {
-    throw new ApiError(422, 'owner.name_en is required when creating an owner inline');
-  }
+  if (!owner) throw new ApiError(422, 'owner is required when creating an owner inline');
+  const [nameTa, nameEn] = resolveNames(owner);
+  if (!nameEn) throw new ApiError(422, 'owner name is required (Tamil or English, your choice)');
   const info = db.prepare(
     `INSERT INTO owners (name_ta, name_en, farm_name, phone, village, district, is_contact_public,
                          review_status, submitted_at, reviewed_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
-    owner.name_ta || null, String(owner.name_en).trim(), owner.farm_name || null,
+    nameTa, nameEn, owner.farm_name || null,
     owner.phone || null, owner.village || null, owner.district || null,
     owner.is_contact_public ? 1 : 0,
     isAdmin ? 'APPROVED' : 'PENDING',
@@ -802,14 +802,15 @@ api.get('/owners', (req, res) => {
 
 api.post('/owners', (req, res) => {
   const b = req.body || {};
-  if (!b.name_en || !String(b.name_en).trim()) throw new ApiError(422, 'Validation failed', ['name_en is required']);
+  const [nameTa, nameEn] = resolveNames(b);
+  if (!nameEn) throw new ApiError(422, 'Validation failed', ['name is required — Tamil or English, your choice']);
   const review = submitterFields(b, req.isAdmin);
   const info = db.prepare(
     `INSERT INTO owners (name_ta, name_en, farm_name, phone, village, district, is_contact_public, notes,
                          review_status, submitted_at, reviewed_at, submitter_name, submitter_phone)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
-    b.name_ta || null, String(b.name_en).trim(), b.farm_name || null, b.phone || null,
+    nameTa, nameEn, b.farm_name || null, b.phone || null,
     b.village || null, b.district || null, b.is_contact_public ? 1 : 0, b.notes || null,
     review.review_status, review.submitted_at || null, review.reviewed_at || null,
     review.submitter_name || null, review.submitter_phone || null
@@ -868,7 +869,9 @@ api.patch('/owners/:id', (req, res) => {
   const owner = db.prepare('SELECT * FROM owners WHERE id = ?').get(req.params.id);
   if (!owner) throw new ApiError(404, 'Owner not found');
   const b = req.body || {};
-  if (b.name_en !== undefined && !String(b.name_en).trim()) throw new ApiError(422, 'name_en cannot be empty');
+  if (b.name_en !== undefined && b.name_en !== null && !String(b.name_en).trim()) throw new ApiError(422, 'name_en cannot be empty');
+  // `name` replaces the name (both columns); name_ta / name_en update only themselves.
+  const [patchTa, patchEn] = resolveNames(b, { mirror: false });
   db.prepare(
     `UPDATE owners SET
        name_ta = COALESCE(?, name_ta), name_en = COALESCE(?, name_en), farm_name = COALESCE(?, farm_name),
@@ -876,7 +879,7 @@ api.patch('/owners/:id', (req, res) => {
        is_contact_public = COALESCE(?, is_contact_public), notes = COALESCE(?, notes)
      WHERE id = ?`
   ).run(
-    b.name_ta ?? null, b.name_en !== undefined ? String(b.name_en).trim() : null, b.farm_name ?? null,
+    patchTa, patchEn, b.farm_name ?? null,
     b.phone ?? null, b.village ?? null, b.district ?? null,
     b.is_contact_public === undefined ? null : b.is_contact_public ? 1 : 0,
     b.notes ?? null, owner.id

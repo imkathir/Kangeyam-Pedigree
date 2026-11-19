@@ -93,6 +93,8 @@ code, .mono { font-family: var(--mono); font-size: 0.86em; }
 .between { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; }
 .grid { display: grid; gap: 18px; }
 .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* phones: one column — two 170px cards leave no room for badges, names or Tamil labels */
+@media (max-width: 480px) { .grid-2 { grid-template-columns: 1fr; } }
 .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .grid-auto { grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); }

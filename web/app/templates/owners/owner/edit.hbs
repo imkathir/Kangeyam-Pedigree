@@ -12,13 +12,10 @@
   <fieldset class="fieldset">
     <legend>{{tr "Identity"}}</legend>
     <div class="form-grid">
-      <div class="field">
-        <label for="name_en">{{tr "Name (English)"}}<span class="req">*</span></label>
-        <input id="name_en" type="text" value={{nm this}} {{on "input" (fn this.set "name_en")}}>
-      </div>
-      <div class="field">
-        <label for="name_ta">{{tr "Name (Tamil)"}}</label>
-        <input id="name_ta" type="text" class="alt-name" value={{nm2 this}} {{on "input" (fn this.set "name_ta")}}>
+      <div class="field span-2">
+        <label for="name">{{tr "Name"}}<span class="req">*</span></label>
+        <input id="name" type="text" value={{nm this}} {{on "input" (fn this.set (if this.i18n.isTamil "name_ta" "name_en"))}}>
+        <div class="hint">{{tr "Type it in Tamil or English — your choice."}}</div>
       </div>
       <div class="field span-2">
         <label for="farm">{{tr "Farm / family title"}}</label>

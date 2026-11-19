@@ -7,6 +7,7 @@ import { COLORS_LIST, BIRTH_COLORS, DOB_PRECISION, DENTITION, STATUS, DISTRICTS 
 export default class AnimalsAnimalEditController extends Controller {
   @service api;
   @service flash;
+  @service i18n;
   @service router;
 
   colors = COLORS_LIST;

@@ -19,12 +19,9 @@
     <legend>{{tr "Identity"}}</legend>
     <div class="form-grid">
       <div class="field">
-        <label for="name_ta">{{tr "Tamil name"}}<span class="req">*</span></label>
-        <input id="name_ta" type="text" class="alt-name" value={{nm2 this}} {{on "input" (fn this.set "name_ta")}}>
-      </div>
-      <div class="field">
-        <label for="name_en">{{tr "English name"}}<span class="req">*</span></label>
-        <input id="name_en" type="text" value={{nm this}} {{on "input" (fn this.set "name_en")}}>
+        <label for="name">{{tr "Name"}}<span class="req">*</span></label>
+        <input id="name" type="text" value={{nm this}} {{on "input" (fn this.set (if this.i18n.isTamil "name_ta" "name_en"))}}>
+        <div class="hint">{{tr "Type it in Tamil or English — your choice."}}</div>
       </div>
       <div class="field">
         <label for="tag">{{tr "Ear tag / registration no."}}</label>

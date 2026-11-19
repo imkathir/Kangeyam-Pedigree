@@ -7,6 +7,7 @@ import { DISTRICTS } from 'web/utils/enums';
 export default class OwnersOwnerEditController extends Controller {
   @service api;
   @service flash;
+  @service i18n;
   @service router;
 
   districts = DISTRICTS;

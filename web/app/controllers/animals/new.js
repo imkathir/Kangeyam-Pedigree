@@ -26,8 +26,7 @@ export default class AnimalsNewController extends Controller {
   @tracked submitted = null; // set when the record was accepted for review
 
   @tracked sex = 'BULL';
-  @tracked name_ta = '';
-  @tracked name_en = '';
+  @tracked name = '';
   @tracked tag_or_reg_no = '';
 
   @tracked dob = '';
@@ -43,11 +42,10 @@ export default class AnimalsNewController extends Controller {
   @tracked dam = null;
   @tracked ownerMode = 'existing';
   @tracked owner_id = '';
-  @tracked owner = { name_en: '', name_ta: '', phone: '', village: '', district: '', is_contact_public: false };
+  @tracked owner = { name: '', phone: '', village: '', district: '', is_contact_public: false };
 
   @tracked stubFor = null;
-  @tracked stubNameEn = '';
-  @tracked stubNameTa = '';
+  @tracked stubName = '';
   @tracked stubVillage = '';
   @tracked creatingStub = false;
 
@@ -56,7 +54,7 @@ export default class AnimalsNewController extends Controller {
   }
 
   get summaryName() {
-    return this.name_en || 'New animal';
+    return this.name || 'New animal';
   }
 
   @action
@@ -100,16 +98,14 @@ export default class AnimalsNewController extends Controller {
 
   validateStep1() {
     const errs = [];
-    if (!this.name_ta.trim()) errs.push('Tamil name (name_ta) is required — e.g. வேல்');
-    if (!this.name_en.trim()) errs.push('English name (name_en) is required — e.g. Vel');
+    if (!this.name.trim()) errs.push('A name is required — type it in Tamil or English.');
     this.errors = errs;
     return errs.length === 0;
   }
 
   buildPayload() {
     const payload = {
-      name_ta: this.name_ta.trim(),
-      name_en: this.name_en.trim(),
+      name: this.name.trim(),
       sex: this.sex,
       current_color: this.current_color,
       dob_precision: this.dob_precision,
@@ -128,10 +124,9 @@ export default class AnimalsNewController extends Controller {
       if (this.dam) payload.dam_id = this.dam.id;
     }
     if (this.ownerMode === 'existing' && this.owner_id) payload.owner_id = Number(this.owner_id);
-    if (this.ownerMode === 'new' && this.owner.name_en.trim()) {
+    if (this.ownerMode === 'new' && this.owner.name.trim()) {
       payload.owner = {
-        name_en: this.owner.name_en.trim(),
-        name_ta: this.owner.name_ta.trim() || null,
+        name: this.owner.name.trim(),
         phone: this.owner.phone.trim() || null,
         village: this.owner.village.trim() || null,
         district: this.owner.district || null,
@@ -163,7 +158,7 @@ export default class AnimalsNewController extends Controller {
         this.flash.success('Submitted for review.');
         return;
       }
-      this.flash.success(`${animal.name_en} (${animal.name_ta}) registered at Generation ${animal.documented_generations}.`);
+      this.flash.success(`${animal.name_en} registered at Generation ${animal.documented_generations}.`);
       this.router.transitionTo('animals.animal', animal.id);
     } catch (e) {
       this.errors = e.list || [e.message];
@@ -178,8 +173,7 @@ export default class AnimalsNewController extends Controller {
     this.submitted = null;
     this.errors = [];
     this.step = 1;
-    this.name_en = '';
-    this.name_ta = '';
+    this.name = '';
     this.tag_or_reg_no = '';
     this.distinctive_markings = '';
     this.sire = null;
@@ -195,8 +189,7 @@ export default class AnimalsNewController extends Controller {
   @action
   openStub(kind) {
     this.stubFor = kind;
-    this.stubNameEn = '';
-    this.stubNameTa = '';
+    this.stubName = '';
     this.stubVillage = this.current_village;
   }
 
@@ -207,15 +200,14 @@ export default class AnimalsNewController extends Controller {
 
   @action
   async createStub() {
-    if (!this.stubName_en()) {
-      this.errors = ['A stub ancestor needs at least an English name.'];
+    if (!this.stubName.trim()) {
+      this.errors = ['A stub ancestor needs a name — Tamil or English.'];
       return;
     }
     this.creatingStub = true;
     try {
       const { data: animal, meta } = await this.api.createAnimal({
-        name_ta: this.stubNameTa.trim() || this.stubNameEn.trim(),
-        name_en: this.stubNameEn.trim(),
+        name: this.stubName.trim(),
         sex: this.stubFor === 'sire' ? 'BULL' : 'COW',
         current_color: 'OTHER',
         current_village: this.stubVillage.trim() || null,
@@ -237,7 +229,4 @@ export default class AnimalsNewController extends Controller {
     }
   }
 
-  stubName_en() {
-    return this.stubNameEn.trim();
-  }
 }

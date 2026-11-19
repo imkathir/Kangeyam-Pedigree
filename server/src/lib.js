@@ -516,29 +516,37 @@ function serializeOwner(o, { includePhone = true } = {}) {
  * ──────────────────────────────────────────────────────────────────────────── */
 const oneOf = (value, dict) => Object.prototype.hasOwnProperty.call(dict, value);
 
+/**
+ * One name, either script. The owner types the name in Tamil or English —
+ * whichever they like — and it is recorded in *both* columns so search, sort
+ * and certificates that read either column keep working. Callers that really
+ * have two names (API clients, seed data) still pass `name_ta` / `name_en`
+ * explicitly and those win per column. `mirror: false` (PATCH) only applies
+ * what the request carries, leaving the other column untouched.
+ */
+function resolveNames(body = {}, { mirror = true } = {}) {
+  const clean = (v) => (v !== undefined && v !== null && String(v).trim() !== '' ? String(v).trim() : null);
+  let ta = clean(body.name_ta);
+  let en = clean(body.name_en);
+  const generic = clean(body.name);
+  if (generic) {
+    ta = ta || generic;
+    en = en || generic;
+  } else if (mirror) {
+    ta = ta || en;
+    en = en || ta;
+  }
+  return [ta, en];
+}
+
 function validateAnimalPayload(body, { partial = false, current = null } = {}) {
   const errors = [];
   const data = {};
 
-  const take = (field) => (body[field] !== undefined ? body[field] : undefined);
-  const requireText = (field, label, { ta = false } = {}) => {
-    const v = take(field);
-    if (v === undefined) {
-      if (!partial) errors.push(`${label} is required`);
-      return;
-    }
-    if (v === null || String(v).trim() === '') {
-      errors.push(`${label} is required`);
-      return;
-    }
-    data[field] = String(v).trim();
-    if (ta && !/[\u0B80-\u0BFF]/.test(data[field])) {
-      // soft warning only — served through meta.warnings
-    }
-  };
-
-  requireText('name_ta', 'Tamil name (name_ta)', { ta: true });
-  requireText('name_en', 'English name (name_en)');
+  const [nameTa, nameEn] = resolveNames(body, { mirror: !partial });
+  if (nameTa) data.name_ta = nameTa;
+  if (nameEn) data.name_en = nameEn;
+  if (!partial && !nameEn) errors.push('name is required — Tamil or English, your choice');
 
   if (body.sex !== undefined || !partial) {
     if (!['BULL', 'COW'].includes(body.sex)) errors.push('sex must be BULL or COW');
@@ -613,6 +621,7 @@ module.exports = {
   ENUMS,
   ANIMAL_FIELDS,
   ApiError,
+  resolveNames,
   ageFrom,
   documentedGenerations,
   ancestorMap,

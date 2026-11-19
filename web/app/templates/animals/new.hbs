@@ -19,7 +19,7 @@
     <div>
       <div class="eyebrow">{{tr "New registration · புதிய பதிவு"}}</div>
       <h1 style="margin:0">{{tr "Register a Kangeyam"}}</h1>
-      <p class="muted small" style="margin:6px 0 0">{{tr "Two names, a sex and a coat colour are enough to start. Everything else can be filled in later — including parents, which stay unknown (Generation 0) until someone documents them."}}</p>
+      <p class="muted small" style="margin:6px 0 0">{{tr "A name, a sex and a coat colour are enough to start. Everything else can be filled in later — including parents, which stay unknown (Generation 0) until someone documents them."}}</p>
     </div>
     <LinkTo @route="animals" class="btn btn-ghost btn-sm">{{tr "Cancel"}}</LinkTo>
   </div>
@@ -46,17 +46,10 @@
             </div>
           </div>
 
-          <div class="field-pair">
-            <div class="field">
-              <label for="name_ta">{{tr "Tamil name"}}<span class="req">*</span></label>
-              <input id="name_ta" type="text" class="alt-name" value={{nm2 this}} placeholder="எ.கா. வேல்" autocomplete="off" {{on "input" (fn this.set "name_ta")}}>
-              <div class="hint">தமிழில் பெயர்</div>
-            </div>
-            <div class="field">
-              <label for="name_en">{{tr "English name / transliteration"}}<span class="req">*</span></label>
-              <input id="name_en" type="text" value={{nm this}} placeholder={{tr "e.g. Vel"}} autocomplete="off" {{on "input" (fn this.set "name_en")}}>
-              <div class="hint">{{tr "Used for search and certificates"}}</div>
-            </div>
+          <div class="field">
+            <label for="name">{{tr "Name"}}<span class="req">*</span></label>
+            <input id="name" type="text" value={{this.name}} placeholder="வேல் · Vel" autocomplete="off" {{on "input" (fn this.set "name")}}>
+            <div class="hint">{{tr "Type it in Tamil or English — your choice."}}</div>
           </div>
 
           <div class="field">
@@ -185,15 +178,9 @@
           {{#if this.stubFor}}
             <div class="card card-tight" style="background:var(--paper-2)">
               <div class="eyebrow">{{tr "New stub {{name}}" name=this.stubFor}}</div>
-              <div class="field-pair">
-                <div class="field">
-                  <label>{{tr "English name"}}<span class="req">*</span></label>
-                  <input type="text" value={{this.stubNameEn}} placeholder={{tr "e.g. Kalingan"}} {{on "input" (fn this.set "stubNameEn")}}>
-                </div>
-                <div class="field">
-                  <label>{{tr "Tamil name"}}</label>
-                  <input type="text" class="alt-name" value={{this.stubNameTa}} placeholder="எ.கா. காளிங்கன்" {{on "input" (fn this.set "stubNameTa")}}>
-                </div>
+              <div class="field">
+                <label>{{tr "Name"}}<span class="req">*</span></label>
+                <input type="text" value={{this.stubName}} placeholder="காளிங்கன் · Kalingan" {{on "input" (fn this.set "stubName")}}>
               </div>
               <div class="field">
                 <label>{{tr "Village"}}</label>
@@ -243,15 +230,9 @@
           {{/if}}
 
           {{#if (eq this.ownerMode "new")}}
-            <div class="field-pair">
-              <div class="field">
-                <label>{{tr "Owner name (English)"}}<span class="req">*</span></label>
-                <input type="text" value={{nm this.owner}} placeholder={{tr "Murugesan"}} {{on "input" (fn this.setOwner "name_en")}}>
-              </div>
-              <div class="field">
-                <label>{{tr "Owner name (Tamil)"}}</label>
-                <input type="text" class="alt-name" value={{nm2 this.owner}} placeholder="முருகேசன்" {{on "input" (fn this.setOwner "name_ta")}}>
-              </div>
+            <div class="field">
+              <label>{{tr "Name"}}<span class="req">*</span></label>
+              <input type="text" value={{this.owner.name}} placeholder="முருகேசன் · Murugesan" {{on "input" (fn this.setOwner "name")}}>
             </div>
             <div class="field-pair">
               <div class="field">

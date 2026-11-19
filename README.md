@@ -351,6 +351,14 @@ Sentences the API composes — age labels (`4 yrs (year only)`), kinship (`First
 `X is an ancestor of Y` — are matched by the small `patterns` table next to the dictionary, so the
 server can keep returning one canonical English structure.
 
+**One field, one name.** No form ever asks for the same thing twice: registration, the breeder
+directory, stub ancestors and the ownership timeline each have a single *Name* input, and the owner
+types it in whichever script they like. The server (`resolveNames()` in `server/src/lib.js`) records
+it in both `name_ta` and `name_en`, so search, sorting and certificates work either way, while API
+callers that genuinely have both names still send `name_ta` / `name_en` explicitly. When a record
+does have two different names, the primary follows the active language and the other script is
+shown as the secondary line.
+
 **What is *not* translated:** a breeder's own words (notes, captions, achievement titles) and
 free-text village names are stored once and shown exactly as entered; the common Kongu Nadu
 villages, districts and coat/sex/dentition vocabularies are mapped. Bilingual record names use

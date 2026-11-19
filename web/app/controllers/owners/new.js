@@ -14,8 +14,7 @@ export default class OwnersNewController extends Controller {
   @tracked errors = [];
   @tracked submitted = null;
 
-  @tracked name_en = '';
-  @tracked name_ta = '';
+  @tracked name = '';
   @tracked farm_name = '';
   @tracked phone = '';
   @tracked village = '';
@@ -32,16 +31,15 @@ export default class OwnersNewController extends Controller {
   @action
   async save(event) {
     event.preventDefault();
-    if (!this.name_en.trim()) {
-      this.errors = ['The owner needs an English name.'];
+    if (!this.name.trim()) {
+      this.errors = ['The breeder needs a name — type it in Tamil or English.'];
       return;
     }
     this.saving = true;
     this.errors = [];
     try {
       const { data: owner, meta } = await this.api.createOwner({
-        name_en: this.name_en.trim(),
-        name_ta: this.name_ta.trim() || null,
+        name: this.name.trim(),
         farm_name: this.farm_name.trim() || null,
         phone: this.phone.trim() || null,
         village: this.village.trim() || null,
@@ -67,8 +65,7 @@ export default class OwnersNewController extends Controller {
   startAnother() {
     this.submitted = null;
     this.errors = [];
-    this.name_en = '';
-    this.name_ta = '';
+    this.name = '';
     this.farm_name = '';
     this.phone = '';
     this.village = '';

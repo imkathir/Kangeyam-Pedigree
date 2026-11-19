@@ -18,7 +18,7 @@ export default class AnimalsAnimalOwnershipController extends Controller {
   @tracked role = 'CURRENT_OWNER';
   @tracked owner_id = '';
   @tracked ownerMode = 'existing';
-  @tracked newOwner = { name_en: '', name_ta: '', farm_name: '', phone: '', village: '', district: '', is_contact_public: false };
+  @tracked newOwner = { name: '', farm_name: '', phone: '', village: '', district: '', is_contact_public: false };
   @tracked from_date = '';
   @tracked to_date = '';
   @tracked place_note = '';
@@ -67,11 +67,11 @@ export default class AnimalsAnimalOwnershipController extends Controller {
       }
       payload.owner_id = Number(this.owner_id);
     } else {
-      if (!this.newOwner.name_en.trim()) {
-        this.errors = ['The new owner needs an English name.'];
+      if (!this.newOwner.name.trim()) {
+        this.errors = ['The new owner needs a name — type it in Tamil or English.'];
         return;
       }
-      payload.owner = { ...this.newOwner, name_en: this.newOwner.name_en.trim() };
+      payload.owner = { ...this.newOwner, name: this.newOwner.name.trim() };
     }
 
     this.saving = true;
@@ -85,7 +85,7 @@ export default class AnimalsAnimalOwnershipController extends Controller {
       this.to_date = '';
       this.place_note = '';
       this.sequence_order = '';
-      this.newOwner = { name_en: '', name_ta: '', farm_name: '', phone: '', village: '', district: '', is_contact_public: false };
+      this.newOwner = { name: '', farm_name: '', phone: '', village: '', district: '', is_contact_public: false };
       this.router.refresh('animals.animal');
     } catch (e) {
       this.errors = e.list || [e.message];

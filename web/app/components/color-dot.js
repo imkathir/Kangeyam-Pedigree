@@ -3,14 +3,14 @@ import { COLORS } from 'web/utils/enums';
 
 export default class ColorDotComponent extends Component {
   get meta() {
-    return COLORS[this.args.color] || COLORS.OTHER;
+    return this.args.color ? (COLORS[this.args.color] || COLORS.OTHER) : null;
   }
 
   get style() {
-    return `background:${this.meta.hex}`;
+    return `background:${this.meta ? this.meta.hex : '#d8d1c4'}`;
   }
 
   get title() {
-    return `${this.meta.ta} · ${this.meta.en}`;
+    return this.meta ? `${this.meta.ta} · ${this.meta.en}` : '—';
   }
 }

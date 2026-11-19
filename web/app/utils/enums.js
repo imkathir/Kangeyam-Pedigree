@@ -1,10 +1,10 @@
 // Client-side mirror of the registry enumerations (labels in Tamil + English).
 export const COLORS = {
   MAYILAI: { ta: 'மயிலை', en: 'Mayilai (peacock grey)', hex: '#8d9aa5' },
-  KARI_MAYILAI: { ta: 'கருமயிலை', en: 'Kari Mayilai (dark grey)', hex: '#4a5158' },
   SEVALAI: { ta: 'செவலை', en: 'Sevalai (red-brown)', hex: '#9c4a24' },
-  KARAMBAI: { ta: 'கரம்பை', en: 'Karambai (pale grey)', hex: '#c2bcae' },
-  VELLAI: { ta: 'வெள்ளை', en: 'Vellai (white)', hex: '#efece4' },
+  KARI: { ta: 'கரி', en: 'Kaari (black)', hex: '#2f2b28' },
+  KARAM_PASU: { ta: 'காராம் பசு', en: 'Kaarampasu', hex: '#6e5f52' },
+  KURRA: { ta: 'குர்ரா', en: 'Kurra', hex: '#8a5a2b' },
   OTHER: { ta: 'மற்றவை', en: 'Other / mixed', hex: '#b9a68a' },
 };
 

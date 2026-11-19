@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS animals (
                        CHECK (dob_precision IN ('EXACT','MONTH_YEAR','YEAR_ONLY','ESTIMATED_BY_TEETH')),
   dentition_stage      TEXT CHECK (dentition_stage IN ('CALF_MILK_TEETH','TWO_TOOTH','FOUR_TOOTH','SIX_TOOTH','FULL_MOUTH')),
   birth_color          TEXT CHECK (birth_color IN ('RED_FAWN','GREY','BLACK','OTHER')),
-  current_color        TEXT NOT NULL DEFAULT 'MAYILAI'
-                       CHECK (current_color IN ('MAYILAI','KARI_MAYILAI','SEVALAI','KARAMBAI','VELLAI','OTHER')),
+  current_color        TEXT DEFAULT 'MAYILAI'
+                       CHECK (current_color IS NULL OR current_color IN ('MAYILAI','SEVALAI','KARI','KARAM_PASU','KURRA','OTHER')),
   distinctive_markings TEXT,
   current_village      TEXT,
   current_district     TEXT,

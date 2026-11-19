@@ -45,7 +45,7 @@
         <article class="card review-item">
           <div class="review-main">
             <div class="eyebrow">
-              {{tr a.sex}} · {{a.current_color}}
+              {{tr a.sex}} · {{or a.current_color "—"}}
               {{#if a.is_stub}}· {{tr "stub"}}{{/if}}
               {{#if a.tag_or_reg_no}}· {{a.tag_or_reg_no}}{{/if}}
             </div>

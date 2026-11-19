@@ -45,7 +45,7 @@
         <table class="cert-table" style="margin-top:14px">
           <tbody>
             <tr><td>{{tr "Registry number"}}</td><td class="mono">{{or this.animal.tag_or_reg_no "— not issued —"}}</td></tr>
-            <tr><td>{{tr "Coat colour"}}</td><td>{{lbl this.animal.labels.current_color}}</td></tr>
+            <tr><td>{{tr "Coat colour"}}</td><td>{{or (lbl this.animal.labels.current_color) "—"}}</td></tr>
             <tr><td>{{tr "Calf coat"}}</td><td>{{if this.animal.labels.birth_color this.animal.labels.birth_color.en "—"}}</td></tr>
             <tr><td>{{tr "Date of birth"}}</td><td>{{or this.animal.dob (tr "Unknown")}} <span class="muted tiny">({{lbl this.animal.labels.dob_precision}})</span></td></tr>
             <tr><td>{{tr "Dentition"}}</td><td>{{if this.animal.labels.dentition_stage this.animal.labels.dentition_stage.en "—"}}</td></tr>

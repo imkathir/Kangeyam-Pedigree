@@ -20,7 +20,7 @@ const ANIMALS = [
   {
     key: 'vel', tag: 'KGR-2011-001', name_ta: 'வேல்', name_en: 'Vel', sex: 'BULL',
     dob: '2011-03-10', dob_precision: 'EXACT', dentition_stage: 'FULL_MOUTH',
-    birth_color: 'RED_FAWN', current_color: 'KARI_MAYILAI',
+    birth_color: 'RED_FAWN', current_color: 'KARI',
     distinctive_markings: 'வெள்ளை நெற்றிப் பொட்டு (forehead star), கருப்பு வால் குஞ்சம், மேல்நோக்கி வளைந்த கொம்புகள்',
     village: 'Kangeyam', district: 'Tiruppur', sire: null, dam: null, is_stub: 0,
     notes: 'Founder bull of Thambi Farms bloodline. Documented from a herd at Kangeyam weekly shandy in 2011.',
@@ -59,7 +59,7 @@ const ANIMALS = [
   {
     key: 'muthu', tag: null, name_ta: 'முத்து', name_en: 'Muthu', sex: 'BULL',
     dob: null, dob_precision: 'ESTIMATED_BY_TEETH', dentition_stage: 'SIX_TOOTH',
-    birth_color: null, current_color: 'KARAMBAI',
+    birth_color: null, current_color: 'KARAM_PASU',
     distinctive_markings: null,
     village: 'Palladam', district: 'Tiruppur', sire: null, dam: null, is_stub: 1,
     ownerships: [{ owner: 'o4', role: 'PREVIOUS_OWNER', sequence_order: 1, place_note: 'Palladam' }],
@@ -87,7 +87,7 @@ const ANIMALS = [
   {
     key: 'kaarthi', tag: 'KGR-2013-007', name_ta: 'கார்த்தி', name_en: 'Kaarthi', sex: 'COW',
     dob: '2013-01-15', dob_precision: 'YEAR_ONLY', dentition_stage: 'FULL_MOUTH',
-    birth_color: 'RED_FAWN', current_color: 'KARI_MAYILAI',
+    birth_color: 'RED_FAWN', current_color: 'KARI',
     distinctive_markings: 'கருமயிலை, வெள்ளை நெற்றிப் பட்டை',
     village: 'Vellakoil', district: 'Tiruppur', sire: null, dam: null, is_stub: 0,
     ownerships: [
@@ -110,7 +110,7 @@ const ANIMALS = [
   {
     key: 'ponni', tag: 'KGR-2014-013', name_ta: 'பொன்னி', name_en: 'Ponni', sex: 'COW',
     dob: '2014-08-09', dob_precision: 'MONTH_YEAR', dentition_stage: 'FULL_MOUTH',
-    birth_color: 'GREY', current_color: 'VELLAI',
+    birth_color: 'GREY', current_color: 'OTHER',
     distinctive_markings: 'வெள்ளை உடல், கருப்பு கண் வட்டம் (காளைக் கண்)',
     village: 'Pollachi', district: 'Coimbatore', sire: null, dam: null, is_stub: 0,
     ownerships: [{ owner: 'o5', role: 'BREEDER', sequence_order: 1, from_date: '2014-08', place_note: 'Pollachi' }],
@@ -132,7 +132,7 @@ const ANIMALS = [
   {
     key: 'semmai', tag: 'KGR-2016-021', name_ta: 'செம்மை', name_en: 'Semmai', sex: 'BULL',
     dob: '2016-02-18', dob_precision: 'EXACT', dentition_stage: 'FULL_MOUTH',
-    birth_color: 'RED_FAWN', current_color: 'KARI_MAYILAI',
+    birth_color: 'RED_FAWN', current_color: 'KARI',
     distinctive_markings: 'கருமயிலை, இரு பக்கமும் சமமான கொம்பு வளைவு',
     village: 'Kangeyam', district: 'Tiruppur', sire: 'vel', dam: 'mayilai', is_stub: 0,
     notes: 'First son of Vel. Sire of the Kangeyam "Semmai line".',
@@ -182,7 +182,7 @@ const ANIMALS = [
   {
     key: 'nandhini', tag: 'KGR-2017-031', name_ta: 'நந்தினி', name_en: 'Nandhini', sex: 'COW',
     dob: '2017-05-05', dob_precision: 'MONTH_YEAR', dentition_stage: 'FULL_MOUTH',
-    birth_color: 'GREY', current_color: 'KARAMBAI',
+    birth_color: 'GREY', current_color: 'KARAM_PASU',
     distinctive_markings: 'கரம்பை நிறம், கருப்பு வால் குஞ்சம்',
     village: 'Pollachi', district: 'Coimbatore', sire: 'arasan', dam: 'ponni', is_stub: 0,
     ownerships: [
@@ -197,7 +197,7 @@ const ANIMALS = [
   {
     key: 'veeran', tag: 'KGR-2019-042', name_ta: 'வீரன்', name_en: 'Veeran', sex: 'BULL',
     dob: '2019-04-11', dob_precision: 'EXACT', dentition_stage: 'FULL_MOUTH',
-    birth_color: 'RED_FAWN', current_color: 'KARI_MAYILAI',
+    birth_color: 'RED_FAWN', current_color: 'KARI',
     distinctive_markings: 'கருமயிலை, வெள்ளை நெற்றிப் பொட்டு, கூரான கொம்பு',
     village: 'Udumalpet', district: 'Tiruppur', sire: 'semmai', dam: 'kaveri', is_stub: 0,
     notes: 'Rekla pair-mate of Semmai; twice a Jallikattu "uncaught bull".',
@@ -241,7 +241,7 @@ const ANIMALS = [
   {
     key: 'amaravathi', tag: 'KGR-2020-053', name_ta: 'அமராவதி', name_en: 'Amaravathi', sex: 'COW',
     dob: '2020-06-14', dob_precision: 'EXACT', dentition_stage: 'FOUR_TOOTH',
-    birth_color: 'RED_FAWN', current_color: 'KARI_MAYILAI',
+    birth_color: 'RED_FAWN', current_color: 'KARI',
     distinctive_markings: 'கருமயிலை, நீண்ட கொம்பு',
     village: 'Kangeyam', district: 'Tiruppur', sire: 'pugazh', dam: 'kaveri', is_stub: 0,
     ownerships: [{ owner: 'o1', role: 'BREEDER', sequence_order: 1, from_date: '2020-06', place_note: 'Kangeyam' }],
@@ -280,7 +280,7 @@ const ANIMALS = [
   {
     key: 'murugan', tag: 'KGR-2022-067', name_ta: 'முருகன்', name_en: 'Murugan', sex: 'BULL',
     dob: '2022-08-02', dob_precision: 'EXACT', dentition_stage: 'FOUR_TOOTH',
-    birth_color: 'GREY', current_color: 'KARAMBAI',
+    birth_color: 'GREY', current_color: 'KARAM_PASU',
     distinctive_markings: 'கரம்பை நிறம், குட்டையான கூரிய கொம்புகள்',
     village: 'Palladam', district: 'Tiruppur', sire: 'veeran', dam: 'valli', is_stub: 0,
     ownerships: [{ owner: 'o4', role: 'BREEDER', sequence_order: 1, from_date: '2022-08', place_note: 'Palladam' }],
@@ -305,7 +305,7 @@ const ANIMALS = [
   {
     key: 'ilavel', tag: 'KGR-2024-081', name_ta: 'இளவேல்', name_en: 'Ilavel', sex: 'BULL',
     dob: '2024-03-03', dob_precision: 'EXACT', dentition_stage: 'TWO_TOOTH',
-    birth_color: 'RED_FAWN', current_color: 'KARI_MAYILAI',
+    birth_color: 'RED_FAWN', current_color: 'KARI',
     distinctive_markings: 'கருமயிலை, வேல் போன்ற நெற்றிப் பொட்டு (great-grandsire likeness)',
     village: 'Kangeyam', district: 'Tiruppur', sire: 'kannan', dam: 'tamilselvi', is_stub: 0,
     notes: 'Named for his resemblance to his great-great-grandsire Vel.',
@@ -344,7 +344,7 @@ const ANIMALS = [
   {
     key: 'vetri', tag: 'KGR-2026-002', name_ta: 'வெற்றி', name_en: 'Vetri', sex: 'BULL',
     dob: '2026-01-28', dob_precision: 'EXACT', dentition_stage: 'CALF_MILK_TEETH',
-    birth_color: 'RED_FAWN', current_color: 'KARI_MAYILAI',
+    birth_color: 'RED_FAWN', current_color: 'KARI',
     distinctive_markings: 'பிறந்த நிறம் செம்மை; 6 மாதத்தில் கருமயிலையாக மாறத் தொடங்கியது',
     village: 'Kangeyam', district: 'Tiruppur', sire: 'ilavel', dam: 'bhavani', is_stub: 0,
     notes: 'Fifth documented generation of the Vel line — 5 generations deep in the registry.',
@@ -367,7 +367,7 @@ const ANIMALS = [
   {
     key: 'selvam', tag: null, name_ta: 'செல்வம்', name_en: 'Selvam', sex: 'BULL',
     dob: null, dob_precision: 'ESTIMATED_BY_TEETH', dentition_stage: 'SIX_TOOTH',
-    birth_color: null, current_color: 'KARAMBAI',
+    birth_color: null, current_color: 'KARAM_PASU',
     distinctive_markings: 'கரம்பை நிறம், வெள்ளை வயிறு',
     village: 'Udumalpet', district: 'Tiruppur', sire: null, dam: null, is_stub: 0,
     notes: 'Bought at the Udumalpet shandy — parentage unknown, so registered as Generation 0.',

@@ -213,7 +213,7 @@ api.get('/stats', (req, res) => {
   const generations = all.map((a) => documentedGenerations(a.id));
   const deepest = generations.length ? Math.max(...generations) : 0;
   const byColor = db.prepare(
-    `SELECT current_color, COUNT(*) AS count FROM animals WHERE ${VISIBLE} GROUP BY current_color ORDER BY count DESC`
+    `SELECT current_color, COUNT(*) AS count FROM animals WHERE ${VISIBLE} AND current_color IS NOT NULL GROUP BY current_color ORDER BY count DESC`
   ).all().map((r) => ({ color: r.current_color, label: ENUMS.colors[r.current_color], count: r.count }));
   const byCategory = db.prepare(
     `SELECT a.category, COUNT(*) AS count FROM achievements a JOIN animals an ON an.id = a.animal_id

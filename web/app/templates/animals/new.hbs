@@ -260,7 +260,7 @@
       <hr class="divider" style="margin:12px 0">
       <div class="kv-list">
         <div class="kv"><span class="k">{{tr "Sex"}}</span><span>{{if (eq this.sex "BULL") (tr "Bull (காளை)") (tr "Cow (பசு)")}}</span></div>
-        <div class="kv"><span class="k">{{tr "Coat"}}</span><span class="row" style="gap:6px"><ColorDot @color={{this.current_color}} /> {{this.current_color}}</span></div>
+        <div class="kv"><span class="k">{{tr "Coat"}}</span><span class="row" style="gap:6px"><ColorDot @color={{this.current_color}} /> {{or this.current_color "—"}}</span></div>
         <div class="kv"><span class="k">{{tr "Sire"}}</span><span>{{or (nm this.sire) (tr "Unknown (Gen 0)")}}</span></div>
         <div class="kv"><span class="k">{{tr "Dam"}}</span><span>{{or (nm this.dam) (tr "Unknown (Gen 0)")}}</span></div>
         <div class="kv"><span class="k">{{tr "Village"}}</span><span>{{or this.current_village "—"}}</span></div>

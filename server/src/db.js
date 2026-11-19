@@ -135,6 +135,75 @@ function migrate() {
   }
   db.exec('CREATE INDEX IF NOT EXISTS idx_animals_review ON animals(review_status)');
   db.exec('CREATE INDEX IF NOT EXISTS idx_owners_review ON owners(review_status)');
+
+  // Coat-colour list changed (Kari Mayilai / Karambai / Vellai replaced by
+  // Kaari / Kaarampasu / Kurra). SQLite can't alter a CHECK, so rebuild the
+  // animals table. Only current_color values that are no longer options are
+  // cleared (to NULL) — explicitly permitted by the operator for this field;
+  // every other column is copied verbatim.
+  const animalsSql = (db.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='animals'`).get() || {}).sql || '';
+  if (animalsSql.includes('KARI_MAYILAI')) {
+    db.exec('PRAGMA foreign_keys=OFF');
+    db.exec(`
+      CREATE TABLE animals_rebuild (
+        id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+        tag_or_reg_no        TEXT UNIQUE,
+        name_ta              TEXT NOT NULL,
+        name_en              TEXT NOT NULL,
+        sex                  TEXT NOT NULL CHECK (sex IN ('BULL','COW')),
+        dob                  TEXT,
+        dob_precision        TEXT NOT NULL DEFAULT 'ESTIMATED_BY_TEETH'
+                             CHECK (dob_precision IN ('EXACT','MONTH_YEAR','YEAR_ONLY','ESTIMATED_BY_TEETH')),
+        dentition_stage      TEXT CHECK (dentition_stage IN ('CALF_MILK_TEETH','TWO_TOOTH','FOUR_TOOTH','SIX_TOOTH','FULL_MOUTH')),
+        birth_color          TEXT CHECK (birth_color IN ('RED_FAWN','GREY','BLACK','OTHER')),
+        current_color        TEXT DEFAULT 'MAYILAI'
+                             CHECK (current_color IS NULL OR current_color IN ('MAYILAI','SEVALAI','KARI','KARAM_PASU','KURRA','OTHER')),
+        distinctive_markings TEXT,
+        current_village      TEXT,
+        current_district     TEXT,
+        sire_id              INTEGER REFERENCES animals(id) ON DELETE SET NULL,
+        dam_id               INTEGER REFERENCES animals(id) ON DELETE SET NULL,
+        is_stub              INTEGER NOT NULL DEFAULT 0,
+        status               TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','SOLD','DECEASED')),
+        notes                TEXT,
+        archived_at          TEXT,
+        review_status        TEXT NOT NULL DEFAULT 'APPROVED'
+                             CHECK (review_status IN ('PENDING','APPROVED','REJECTED')),
+        submitted_at         TEXT,
+        reviewed_at          TEXT,
+        review_note          TEXT,
+        submitter_name       TEXT,
+        submitter_phone      TEXT,
+        created_at           TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      INSERT INTO animals_rebuild (
+        id, tag_or_reg_no, name_ta, name_en, sex, dob, dob_precision, dentition_stage,
+        birth_color, current_color, distinctive_markings, current_village, current_district,
+        sire_id, dam_id, is_stub, status, notes, archived_at, review_status,
+        submitted_at, reviewed_at, review_note, submitter_name, submitter_phone, created_at
+      )
+      SELECT
+        id, tag_or_reg_no, name_ta, name_en, sex, dob, dob_precision, dentition_stage,
+        birth_color,
+        CASE WHEN current_color IN ('MAYILAI','SEVALAI','KARI','KARAM_PASU','KURRA','OTHER')
+             THEN current_color ELSE NULL END,
+        distinctive_markings, current_village, current_district,
+        sire_id, dam_id, is_stub, status, notes, archived_at, review_status,
+        submitted_at, reviewed_at, review_note, submitter_name, submitter_phone, created_at
+      FROM animals;
+      DROP TABLE animals;
+      ALTER TABLE animals_rebuild RENAME TO animals;
+    `);
+    db.exec('PRAGMA foreign_keys=ON');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_sex    ON animals(sex)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_color  ON animals(current_color)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_sire   ON animals(sire_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_dam    ON animals(dam_id)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_village ON animals(current_village)');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_review ON animals(review_status)');
+    console.log('[db] migrated coat-colour options (removed colours cleared)');
+  }
+
   if (added) console.log(`[db] migrated ${added} column(s)`);
 }
 migrate();

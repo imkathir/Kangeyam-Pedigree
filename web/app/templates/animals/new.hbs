@@ -72,7 +72,7 @@
       </fieldset>
 
       <fieldset class="fieldset">
-        <legend>{{tr "Age &amp; coat"}}</legend>
+        <legend>{{tr "Age & coat"}}</legend>
 
         <div class="field-pair">
           <div class="field">
@@ -154,7 +154,7 @@
           <AnimalSearch @sex="BULL" @selected={{this.sire}} @onSelect={{fn this.assign "sire"}} @placeholder={{tr "Search bulls by name or village"}} />
           {{#if this.api.hasWriteKey}}
             <div class="row" style="margin-top:6px">
-              <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.openStub "sire")}}>{{tr "+ Add stub sire (name &amp; village only)"}}</button>
+              <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.openStub "sire")}}>{{tr "+ Add stub sire (name & village only)"}}</button>
             </div>
           {{/if}}
         </div>
@@ -164,7 +164,7 @@
           <AnimalSearch @sex="COW" @selected={{this.dam}} @onSelect={{fn this.assign "dam"}} @placeholder={{tr "Search cows by name or village"}} />
           {{#if this.api.hasWriteKey}}
             <div class="row" style="margin-top:6px">
-              <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.openStub "dam")}}>{{tr "+ Add stub dam (name &amp; village only)"}}</button>
+              <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.openStub "dam")}}>{{tr "+ Add stub dam (name & village only)"}}</button>
             </div>
           {{/if}}
         </div>
@@ -182,7 +182,7 @@
             </div>
             <div class="row-wrap">
               <button type="button" class="btn btn-primary btn-sm" disabled={{this.creatingStub}} {{on "click" this.createStub}}>
-                {{if this.creatingStub (tr "Creating…") (tr "Create &amp; link stub")}}
+                {{if this.creatingStub (tr "Creating…") (tr "Create & link stub")}}
               </button>
               <button type="button" class="btn btn-ghost btn-sm" {{on "click" this.cancelStub}}>{{tr "Cancel"}}</button>
             </div>

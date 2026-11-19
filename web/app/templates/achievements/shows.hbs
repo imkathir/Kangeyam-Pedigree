@@ -1,6 +1,6 @@
 <div class="stack">
   <div class="notice notice-green">
-    <strong>{{tr "கண்காட்சி &amp; பால் உற்பத்தி · Shows, dairy and breeding milestones."}}</strong>{{tr "Breed exhibitions, best dams, lactation records and progeny audits — the quieter records that keep a bloodline valuable."}}</div>
+    <strong>{{tr "கண்காட்சி & பால் உற்பத்தி · Shows, dairy and breeding milestones."}}</strong>{{tr "Breed exhibitions, best dams, lactation records and progeny audits — the quieter records that keep a bloodline valuable."}}</div>
 
   <div class="grid" style="grid-template-columns:1fr; gap:26px">
     <section class="stack">
@@ -15,7 +15,7 @@
     </section>
 
     <section class="stack">
-      <div class="section-title"><h2>{{tr "🥛 Dairy &amp; lactation"}}</h2><span class="small muted">{{tr "{{n}} records" n=@model.dairy.meta.total}}</span></div>
+      <div class="section-title"><h2>{{tr "🥛 Dairy & lactation"}}</h2><span class="small muted">{{tr "{{n}} records" n=@model.dairy.meta.total}}</span></div>
       {{#if @model.dairy.data.length}}
         <div class="grid grid-2">
           {{#each @model.dairy.data as |ach|}}<AchievementCard @achievement={{ach}} @showAnimal={{true}} />{{/each}}

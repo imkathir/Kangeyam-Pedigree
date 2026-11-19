@@ -1,6 +1,30 @@
 import Service from '@ember/service';
+import { tracked } from '@glimmer/tracking';
 
 const BASE = '/api/v1';
+const KEY_STORAGE = 'kangeyam.writeKey';
+
+/**
+ * The registry write key lives in localStorage only (never in the bundle).
+ * It can also be seeded from a shareable link — `/?key=...` — which is then
+ * stripped from the address bar so the key does not linger in history.
+ */
+function readStoredKey() {
+  if (typeof window === 'undefined') return '';
+  try {
+    const url = new URL(window.location.href);
+    const fromUrl = url.searchParams.get('key');
+    if (fromUrl) {
+      window.localStorage.setItem(KEY_STORAGE, fromUrl.trim());
+      url.searchParams.delete('key');
+      window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+      return fromUrl.trim();
+    }
+    return window.localStorage.getItem(KEY_STORAGE) || '';
+  } catch {
+    return '';
+  }
+}
 
 export class ApiError extends Error {
   constructor(status, payload) {
@@ -29,11 +53,32 @@ function qs(params = {}) {
 
 export default class ApiService extends Service {
   base = BASE;
+  @tracked writeKey = readStoredKey();
+
+  get hasWriteKey() {
+    return Boolean(this.writeKey);
+  }
+
+  setWriteKey(key) {
+    const next = (key || '').trim();
+    this.writeKey = next;
+    try {
+      if (next) window.localStorage.setItem(KEY_STORAGE, next);
+      else window.localStorage.removeItem(KEY_STORAGE);
+    } catch {
+      /* storage blocked (private mode) — the key still works for this session */
+    }
+  }
 
   async request(path, { method = 'GET', body } = {}) {
+    const headers = {};
+    if (body) headers['Content-Type'] = 'application/json';
+    const mutating = !['GET', 'HEAD', 'OPTIONS'].includes(method);
+    if (mutating && this.writeKey) headers['x-api-key'] = this.writeKey;
+
     const res = await fetch(`${BASE}${path}`, {
       method,
-      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      headers,
       body: body ? JSON.stringify(body) : undefined,
     });
     let payload = null;

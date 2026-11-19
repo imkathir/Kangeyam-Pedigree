@@ -1,0 +1,37 @@
+<div class="write-key">
+  <button
+    class="btn btn-ghost btn-sm write-key-btn {{if this.active 'is-on'}}"
+    type="button"
+    {{on "click" this.toggle}}
+    aria-expanded={{this.open}}
+    title={{if this.active "Writes unlocked in this browser" "Read-only until a write key is entered"}}
+  >
+    <span aria-hidden="true">{{if this.active "🔓" "🔑"}}</span>
+    <span class="write-key-label">{{if this.active "Writes on" "Write key"}}</span>
+  </button>
+
+  {{#if this.open}}
+    <form class="write-key-panel" {{on "submit" this.save}}>
+      <p class="write-key-title">Write access</p>
+      <p class="write-key-help">
+        Reading the registry is public. Adding or editing animals, owners, achievements and
+        media needs the registry key. It is stored in this browser only.
+      </p>
+      <input
+        type="password"
+        value={{this.draft}}
+        placeholder="paste registry key"
+        autocomplete="off"
+        aria-label="Registry write key"
+        {{on "input" this.update}}
+      />
+      <div class="write-key-actions">
+        <button class="btn btn-primary btn-sm" type="submit">Save key</button>
+        <button class="btn btn-ghost btn-sm" type="button" {{on "click" this.forget}}>Forget</button>
+      </div>
+      {{#if this.note}}
+        <p class="write-key-note">{{this.note}}</p>
+      {{/if}}
+    </form>
+  {{/if}}
+</div>

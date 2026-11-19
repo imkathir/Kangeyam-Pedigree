@@ -95,6 +95,7 @@ queries run over HTTPS.
 ```
 TURSO_DATABASE_URL=libsql://<db>-<org>.turso.io
 TURSO_AUTH_TOKEN=<token>
+WRITE_API_KEY=<long random string>     # see "Write access"; without it the deployment is read-only
 ```
 
 Without those two variables the function falls back to `/tmp` and seeds the demo registry on
@@ -187,6 +188,40 @@ Errors use standard codes with a JSON body:
 { "errors": [{ "status": 422, "title": "Validation failed",
                "detail": ["dam_id: Semmai is a BULL, expected a COW"] }] }
 ```
+
+### Write access
+
+![Write key gate](docs/screenshots/11-write-key-gate.png)
+<!-- /docs/screenshots -->
+
+Reads are always public. Every mutating route (`POST`, `PATCH`, `PUT`, `DELETE`) is gated by
+`server/src/index.js`, in one place, before any handler runs:
+
+| `WRITE_API_KEY` | Environment | Writes |
+| --- | --- | --- |
+| set | anywhere | allowed only with the key, as `Authorization: Bearer <key>` or `x-api-key: <key>` (constant-time compare) |
+| unset | local / `NODE_ENV!==production` | open, so `npm start` stays frictionless |
+| unset | `NODE_ENV=production` or on Vercel | **locked** — every write returns `401 This deployment is read-only` |
+
+`GET /api/v1/health` reports the active mode:
+
+```json
+{ "data": { "status": "ok", "animals": 29, "database": "turso", "writes": "key", "reads": "public" } }
+```
+
+A wrong or missing key answers:
+
+```json
+{ "errors": [{ "status": 401, "title": "Write access requires a key",
+  "detail": "Open the 🔑 Write key panel in the header …" }] }
+```
+
+The Ember client attaches the key from `localStorage` (`kangeyam.writeKey`). Two ways to set it:
+the **🔑 Write key** button in the header, or a link such as
+`https://…/?key=<key>` — the app stores it and strips it from the URL so it stays out of history.
+This is a shared secret for a small registry team, not per-user authentication: anyone you send
+the key to can write, and the browser that holds it can read it back. Put per-user accounts in
+front of it before letting untrusted editors in.
 
 ---
 

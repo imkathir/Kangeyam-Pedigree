@@ -2,6 +2,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const express = require('express');
 const QRCode = require('qrcode');
 
@@ -24,6 +25,53 @@ app.use((req, _res, next) => {
 });
 
 const api = express.Router();
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * WRITE ACCESS
+ * Reads are always public. Writes (POST / PATCH / PUT / DELETE) are gated:
+ *   WRITE_API_KEY set          → the key must be supplied, either as
+ *                                `Authorization: Bearer <key>` or `x-api-key`.
+ *   unset + not production     → open (local dev is frictionless)
+ *   unset + production/Vercel  → locked; every write is refused with 401, so a
+ *                                deployed demo can never be vandalised by default.
+ * The key is compared in constant time. It is a shared secret for a small
+ * registry team, not per-user auth — see README "Write access".
+ * ────────────────────────────────────────────────────────────────────────── */
+const WRITE_KEY = (process.env.WRITE_API_KEY || process.env.KANGEYAM_WRITE_KEY || '').trim();
+const IS_PROD = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+const WRITE_MODE = WRITE_KEY ? 'key' : IS_PROD ? 'locked' : 'open';
+
+function suppliedKey(req) {
+  const auth = req.get('authorization') || '';
+  if (/^bearer\s+/i.test(auth)) return auth.replace(/^bearer\s+/i, '').trim();
+  return (req.get('x-api-key') || req.get('x-write-key') || '').trim();
+}
+
+function keyMatches(given) {
+  if (!given || !WRITE_KEY) return false;
+  const a = Buffer.from(given);
+  const b = Buffer.from(WRITE_KEY);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+api.use((req, res, next) => {
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
+  if (WRITE_MODE === 'open') return next();
+  if (WRITE_MODE === 'locked') {
+    return next(new ApiError(
+      401,
+      'This deployment is read-only',
+      'Writes are disabled because no WRITE_API_KEY is configured for this environment.',
+    ));
+  }
+  if (keyMatches(suppliedKey(req))) return next();
+  return next(new ApiError(
+    401,
+    'Write access requires a key',
+    'Open the 🔑 Write key panel in the header and paste the registry key to unlock editing in this browser, or send it as "Authorization: Bearer <key>" / "x-api-key: <key>".',
+  ));
+});
+
 
 /* ── helpers ────────────────────────────────────────────────────────────── */
 function paginate(req, rows) {
@@ -74,7 +122,16 @@ function feedRow(r) {
  * ────────────────────────────────────────────────────────────────────────── */
 api.get('/health', (_req, res) => {
   const animals = db.prepare('SELECT COUNT(*) AS n FROM animals').get().n;
-  res.json({ data: { status: 'ok', animals, database: DB_MODE, serverless: Boolean(process.env.VERCEL) } });
+  res.json({
+    data: {
+      status: 'ok',
+      animals,
+      database: DB_MODE,
+      serverless: Boolean(process.env.VERCEL),
+      writes: WRITE_MODE,
+      reads: 'public',
+    },
+  });
 });
 
 api.get('/meta', (_req, res) => {

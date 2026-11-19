@@ -24,6 +24,7 @@
     </nav>
 
     <div class="header-actions">
+      <WriteKey />
       <LinkTo @route="animals.new" class="btn btn-primary btn-sm" aria-label="Register a new animal">+<span class="reg-label"> Register</span></LinkTo>
       <button class="nav-toggle" type="button" {{on "click" this.toggle}} aria-label="Menu" aria-expanded={{this.open}}>
         {{if this.open "✕" "☰"}}

@@ -507,3 +507,28 @@ tbody tr:hover { background: #fdf9f1; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
+
+/* ── write key (reads public, writes gated) ─────────────────────────────── */
+.write-key { position: relative; }
+.write-key-btn .write-key-label { font-weight: 600; }
+.write-key-btn.is-on { border-color: #bcd6c6; background: var(--green-soft); color: var(--green); }
+.write-key-btn.is-on:hover { border-color: var(--green); color: var(--green); }
+.write-key-panel {
+  position: absolute; right: 0; top: calc(100% + 10px); z-index: 60;
+  width: min(330px, 88vw); padding: 15px 16px;
+  background: var(--card); border: 1px solid var(--line-strong);
+  border-radius: var(--radius); box-shadow: var(--shadow-lg); text-align: left;
+}
+.write-key-title { font-weight: 700; font-size: 0.95rem; margin: 0 0 4px; }
+.write-key-help { font-size: 0.8rem; line-height: 1.45; color: var(--muted); margin: 0 0 10px; }
+.write-key-panel input {
+  width: 100%; padding: 9px 11px; margin-bottom: 10px;
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  background: #fffdf9; font: inherit; font-size: 0.9rem;
+}
+.write-key-actions { display: flex; gap: 8px; }
+.write-key-note { font-size: 0.78rem; color: var(--green); margin: 9px 0 0; }
+@media (max-width: 560px) {
+  .write-key-label { display: none; }
+  .write-key-panel { position: fixed; left: 12px; right: 12px; top: 66px; width: auto; }
+}

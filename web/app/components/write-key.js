@@ -40,6 +40,7 @@ export default class WriteKeyComponent extends Component {
     this.api.setWriteKey(this.draft);
     this.note = 'Saved — writes are unlocked in this browser.';
     this.open = false;
+    this.args.onSaved?.();
   }
 
   @action
@@ -49,5 +50,6 @@ export default class WriteKeyComponent extends Component {
     this.draft = '';
     this.note = 'Key removed; this browser can only read now.';
     this.open = false;
+    this.args.onSaved?.();
   }
 }

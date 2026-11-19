@@ -11,6 +11,7 @@ const {
   ENUMS, ApiError, ageFrom, documentedGenerations, ancestorMap, descendants,
   compatibility, summary, detail, serializeAchievement, serializeOwner,
   validateAnimalPayload, resolveNames, clearCaches, bool, getAnimal, qMedia, qOwnerships, qAchievements,
+  MAX_MEDIA_PER_ANIMAL,
 } = require('./lib');
 
 seedIfEmpty();
@@ -82,7 +83,7 @@ api.use((req, res, next) => {
   return next(new ApiError(
     401,
     'Admin access requires a key',
-    'Open the 🔑 Write key panel in the header and paste the registry key, or send it as "Authorization: Bearer <key>" / "x-api-key: <key>".',
+    'Open /admin and paste the registry key into the 🔑 Write key control there, or send it as "Authorization: Bearer <key>" / "x-api-key: <key>" (the key is stored in that browser only).',
   ));
 });
 
@@ -349,6 +350,11 @@ api.post('/animals', (req, res) => {
     created.owners.push(ownerId);
   }
   if (Array.isArray(req.body.media)) {
+    if (req.body.media.length > MAX_MEDIA_PER_ANIMAL) {
+      throw new ApiError(422, 'Validation failed', [
+        `media: at most ${MAX_MEDIA_PER_ANIMAL} images per animal`,
+      ]);
+    }
     for (const m of req.body.media) {
       if (!m || !m.media_url) continue;
       db.prepare(
@@ -511,9 +517,14 @@ api.post('/animals/:id/media', (req, res) => {
   if (b.life_stage && !ENUMS.lifeStage[b.life_stage]) throw new ApiError(422, 'Invalid life_stage');
 
   const isPrimary = b.is_primary ? 1 : 0;
-  if (isPrimary) db.prepare('UPDATE animal_media SET is_primary = 0 WHERE animal_id = ?').run(animal.id);
   // first photo automatically becomes primary
   const count = qMedia.all(animal.id).length;
+  if (count >= MAX_MEDIA_PER_ANIMAL) {
+    throw new ApiError(422, 'Validation failed', [
+      `This animal already has the maximum of ${MAX_MEDIA_PER_ANIMAL} images.`,
+    ]);
+  }
+  if (isPrimary) db.prepare('UPDATE animal_media SET is_primary = 0 WHERE animal_id = ?').run(animal.id);
   const info = db.prepare(
     `INSERT INTO animal_media (animal_id, media_url, media_type, life_stage, caption, is_primary)
      VALUES (?, ?, ?, ?, ?, ?)`

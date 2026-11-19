@@ -249,8 +249,13 @@ code, .mono { font-family: var(--mono); font-size: 0.86em; }
 .hero-inner { position: relative; z-index: 2; padding: clamp(26px, 5vw, 52px); }
 .hero h1 { color: #fff9ee; margin-bottom: 10px; }
 .hero p { color: rgba(255, 246, 233, 0.86); max-width: 56ch; }
-.hero-media { position: absolute; inset: 0; z-index: 1; opacity: 0.42; }
-.hero-media img { width: 100%; height: 100%; object-fit: cover; }
+.hero-media { position: absolute; inset: 0; z-index: 1; opacity: 0.42; overflow: hidden; }
+.hero-media img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity 1.1s ease;
+}
+.hero-media img.active { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .hero-media img { transition: none; } }
 .hero-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 26px; margin-top: 26px; }
 @media (min-width: 620px) { .hero-stats { display: flex; flex-wrap: wrap; } }
 .hero-stat .n { font-family: var(--serif); font-size: clamp(1.5rem, 4vw, 1.85rem); line-height: 1; color: #ffd9a8; }

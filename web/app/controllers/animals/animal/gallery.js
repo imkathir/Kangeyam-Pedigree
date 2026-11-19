@@ -39,6 +39,11 @@ export default class AnimalsAnimalGalleryController extends Controller {
     return this.model.animal;
   }
 
+  /** Keep in sync with MAX_MEDIA_PER_ANIMAL in server/src/lib.js. */
+  get full() {
+    return this.model.media.length >= 10;
+  }
+
   get items() {
     if (!this.filter) return this.model.media;
     return this.model.media.filter((m) => m.life_stage === this.filter);

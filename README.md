@@ -204,7 +204,8 @@ sire/dam if given, and Approve / Reject buttons plus counters.
 
 The page renders in three states:
 
-1. **Locked** — this browser has no registry key (tell the admin to use 🔑 Write key).
+1. **Locked** — this browser has no registry key (paste it into the 🔑 Write key
+   control on this page; the queue loads as soon as it is saved).
 2. **Queue** — pending animals and breeders, oldest first.
 3. **All clear** — nothing waiting.
 
@@ -273,11 +274,11 @@ A refused write answers:
 
 ```json
 { "errors": [{ "status": 401, "title": "Admin access requires a key",
-  "detail": "Open the 🔑 Write key panel in the header …" }] }
+  "detail": "Open /admin and paste the key into the 🔑 Write key control …" }] }
 ```
 
 The Ember client attaches the key from `localStorage` (`kangeyam.writeKey`). Set it with the
-**🔑 Write key** button in the header, or with a link such as `https://…/?key=<key>` — the app
+**🔑 Write key** control on `/admin`, or with a link such as `https://…/?key=<key>` — the app
 stores it and strips it from the URL so it stays out of history.
 
 This is a shared secret for a small registry team, not per-user authentication: anyone you send
@@ -310,7 +311,7 @@ A wrong or missing key answers:
 
 ```json
 { "errors": [{ "status": 401, "title": "Write access requires a key",
-  "detail": "Open the 🔑 Write key panel in the header …" }] }
+  "detail": "Open /admin and paste the key into the 🔑 Write key control …" }] }
 ```
 
 The Ember client attaches the key from `localStorage` (`kangeyam.writeKey`). Two ways to set it:
@@ -358,6 +359,15 @@ it in both `name_ta` and `name_en`, so search, sorting and certificates work eit
 callers that genuinely have both names still send `name_ta` / `name_en` explicitly. When a record
 does have two different names, the primary follows the active language and the other script is
 shown as the secondary line.
+
+**Photos.** Every animal carries an optional gallery of up to **10** images
+(`MAX_MEDIA_PER_ANIMAL` in `server/src/lib.js` — one number to raise). The data model is
+one `animal_media` row per image with no fixed columns, so scaling to *n* images needs no
+schema change, only that constant. Images are added by URL or uploaded from the device
+(max 3.5 MB, stored inline with the record).
+
+**Hero.** The dashboard hero crossfades through six photographs in `web/public/hero/`
+every 4 seconds (paused for visitors who prefer reduced motion).
 
 **What is *not* translated:** a breeder's own words (notes, captions, achievement titles) and
 free-text village names are stored once and shown exactly as entered; the common Kongu Nadu

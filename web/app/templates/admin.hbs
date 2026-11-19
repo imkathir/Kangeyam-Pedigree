@@ -3,6 +3,8 @@
 <p class="muted small" style="margin:0 0 18px;max-width:70ch">{{tr "Nothing here is public yet. Approving publishes the record to the registry and the app; rejecting keeps it hidden. This page is not linked anywhere in the app — bookmark"}}<code>/admin</code>.
 </p>
 
+<div style="margin:0 0 16px"><WriteKey @onSaved={{this.reload}} /></div>
+
 {{#if this.error}}
   <div class="notice notice-red" style="margin-bottom:14px">{{this.error}}</div>
 {{/if}}
@@ -14,10 +16,9 @@
   <div class="card" style="max-width:640px">
     <div class="eyebrow">{{tr "Locked"}}</div>
     <h2 style="margin:4px 0 8px">{{tr "This browser has no registry key"}}</h2>
-    <p class="small muted" style="margin:0 0 12px">{{tr "The review queue is admin-only. Paste the registry key with the"}}<strong>{{tr "🔑 Write key"}}</strong> button in the header, then reload this page.
+    <p class="small muted" style="margin:0 0 12px">{{tr "The review queue is admin-only. Paste the registry key in the 🔑 Write key control above and press Save — the queue loads straight away."}}
       {{#if this.model.error}}<br><em>{{this.model.error}}</em>{{/if}}
     </p>
-    <button class="btn btn-primary btn-sm" type="button" {{on "click" this.reload}}>{{tr "Reload"}}</button>
   </div>
 {{else}}
   <div class="admin-stats">

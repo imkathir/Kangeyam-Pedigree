@@ -25,7 +25,6 @@
 
     <div class="header-actions">
       <LanguageToggle />
-      <WriteKey />
       <LinkTo @route="animals.new" class="btn btn-primary btn-sm" aria-label={{tr "Register a new animal"}}>+<span class="reg-label">{{tr "Register"}}</span></LinkTo>
       <button class="nav-toggle" type="button" {{on "click" this.toggle}} aria-label={{tr "Menu"}} aria-expanded={{this.open}}>
         {{if this.open (tr "✕") (tr "☰")}}

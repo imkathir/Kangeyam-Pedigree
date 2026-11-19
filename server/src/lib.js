@@ -2,6 +2,12 @@
 
 const { db } = require('./db');
 
+/* Photos & videos per animal: the optional cap for now. The data model is
+ * one row per image in animal_media (already N-ready — no schema change is
+ * needed to raise this), so scaling to "no limit" or a bigger number is a
+ * one-line change here. Keep the gallery hint in sync when it moves. */
+const MAX_MEDIA_PER_ANIMAL = 10;
+
 /* ────────────────────────────────────────────────────────────────────────────
  * Enumerations — single source of truth for labels in both languages.
  * ──────────────────────────────────────────────────────────────────────────── */
@@ -619,6 +625,7 @@ function validateAnimalPayload(body, { partial = false, current = null } = {}) {
 
 module.exports = {
   ENUMS,
+  MAX_MEDIA_PER_ANIMAL,
   ANIMAL_FIELDS,
   ApiError,
   resolveNames,

@@ -1,8 +1,8 @@
-<nav class="tabbar" aria-label="Animal sections">
-  <LinkTo @route="animals.animal.index" @model={{@animal.id}}>Overview</LinkTo>
-  <LinkTo @route="animals.animal.pedigree" @model={{@animal.id}}>Pedigree ({{@animal.documented_generations}})</LinkTo>
-  <LinkTo @route="animals.animal.achievements" @model={{@animal.id}}>Achievements ({{@animal.achievement_count}})</LinkTo>
-  <LinkTo @route="animals.animal.gallery" @model={{@animal.id}}>Gallery ({{@animal.media.length}})</LinkTo>
-  <LinkTo @route="animals.animal.ownership" @model={{@animal.id}}>Ownership ({{@animal.ownerships.length}})</LinkTo>
-  <LinkTo @route="animals.animal.card" @model={{@animal.id}}>Certificate</LinkTo>
+<nav class="tabbar" aria-label={{tr "Animal sections"}}>
+  <LinkTo @route="animals.animal.index" @model={{@animal.id}}>{{tr "Overview"}}</LinkTo>
+  <LinkTo @route="animals.animal.pedigree" @model={{@animal.id}}>{{tr "Pedigree ({{n}})" n=@animal.documented_generations}}</LinkTo>
+  <LinkTo @route="animals.animal.achievements" @model={{@animal.id}}>{{tr "Achievements ({{n}})" n=@animal.achievement_count}}</LinkTo>
+  <LinkTo @route="animals.animal.gallery" @model={{@animal.id}}>{{tr "Gallery ({{n}})" n=@animal.media.length}}</LinkTo>
+  <LinkTo @route="animals.animal.ownership" @model={{@animal.id}}>{{tr "Ownership ({{n}})" n=@animal.ownerships.length}}</LinkTo>
+  <LinkTo @route="animals.animal.card" @model={{@animal.id}}>{{tr "Certificate"}}</LinkTo>
 </nav>

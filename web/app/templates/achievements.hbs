@@ -1,17 +1,15 @@
 <div class="stack">
   <div>
-    <div class="eyebrow">Hall of fame · சாதனைப் பட்டியல்</div>
-    <h1 style="margin:0">Rekla, Jallikattu &amp; breed show records</h1>
-    <p class="muted small" style="margin:6px 0 0">
-      Every prize, timing and milk record attached to a registered Kangeyam — filter by category or search by event.
-    </p>
+    <div class="eyebrow">{{tr "Hall of fame · சாதனைப் பட்டியல்"}}</div>
+    <h1 style="margin:0">{{tr "Rekla, Jallikattu &amp; breed show records"}}</h1>
+    <p class="muted small" style="margin:6px 0 0">{{tr "Every prize, timing and milk record attached to a registered Kangeyam — filter by category or search by event."}}</p>
   </div>
 
   <nav class="row-wrap">
-    <LinkTo @route="achievements.index" class={{if (eq this.category "") "chip active" "chip"}}>All records</LinkTo>
-    <LinkTo @route="achievements.rekla" class="chip">🏁 Rekla races</LinkTo>
-    <LinkTo @route="achievements.jallikattu" class="chip">🐂 Jallikattu</LinkTo>
-    <LinkTo @route="achievements.shows" class="chip">🏅 Shows &amp; dairy</LinkTo>
+    <LinkTo @route="achievements.index" class={{if (eq this.category "") "chip active" "chip"}}>{{tr "All records"}}</LinkTo>
+    <LinkTo @route="achievements.rekla" class="chip">{{tr "🏁 Rekla races"}}</LinkTo>
+    <LinkTo @route="achievements.jallikattu" class="chip">{{tr "🐂 Jallikattu"}}</LinkTo>
+    <LinkTo @route="achievements.shows" class="chip">{{tr "🏅 Shows &amp; dairy"}}</LinkTo>
   </nav>
 
   {{outlet}}

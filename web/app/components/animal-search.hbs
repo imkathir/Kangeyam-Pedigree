@@ -9,7 +9,7 @@
     aria-label={{or @placeholder "Search animals"}}
   >
   {{#if this.selected}}
-    <button type="button" class="icon-btn" style="position:absolute;right:6px;top:50%;transform:translateY(-50%)" {{on "click" this.clear}} aria-label="Clear">✕</button>
+    <button type="button" class="icon-btn" style="position:absolute;right:6px;top:50%;transform:translateY(-50%)" {{on "click" this.clear}} aria-label={{tr "Clear"}}>✕</button>
   {{else}}
     <span class="icon" aria-hidden="true">🔍</span>
   {{/if}}
@@ -17,17 +17,17 @@
   {{#if this.open}}
     <div class="card card-tight" style="position:absolute;z-index:60;left:0;right:0;top:calc(100% + 4px);max-height:300px;overflow:auto;padding:6px">
       {{#if this.search.isRunning}}
-        <div class="tiny muted" style="padding:8px">Searching…</div>
+        <div class="tiny muted" style="padding:8px">{{tr "Searching…"}}</div>
       {{else if this.results.length}}
         {{#each this.results as |a|}}
           <button type="button" class="btn btn-quiet btn-block" style="justify-content:flex-start;text-align:left;display:flex;gap:8px;align-items:center;color:var(--ink)" {{on "click" (fn this.choose a)}}>
-            <span class="badge {{if (eq a.sex "BULL") "badge-bull" "badge-cow"}}">{{a.sex}}</span>
-            <span><strong>{{a.name_en}}</strong> <span class="ta muted">{{a.name_ta}}</span></span>
-            <span class="tiny muted" style="margin-left:auto">{{a.current_village}}</span>
+            <span class="badge {{if (eq a.sex "BULL") "badge-bull" "badge-cow"}}">{{tr a.sex}}</span>
+            <span><strong>{{nm a}}</strong> <span class="ta muted">{{nm2 a}}</span></span>
+            <span class="tiny muted" style="margin-left:auto">{{tr a.current_village}}</span>
           </button>
         {{/each}}
       {{else}}
-        <div class="tiny muted" style="padding:8px">No matching {{if @sex (if (eq @sex "BULL") "bulls" "cows") "animals"}}.</div>
+        <div class="tiny muted" style="padding:8px">{{tr "No matching {{kind}}." kind=(if @sex (if (eq @sex "BULL") (tr "bulls") (tr "cows")) (tr "animals"))}}</div>
       {{/if}}
     </div>
   {{/if}}

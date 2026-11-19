@@ -1,91 +1,91 @@
 {{#let this.model as |animal|}}
 <div class="stack">
   <div class="row small muted" style="gap:6px">
-    <LinkTo @route="animals">Cattle</LinkTo>
+    <LinkTo @route="animals">{{tr "Cattle"}}</LinkTo>
     <span>/</span>
-    <span>{{animal.name_en}}</span>
+    <span>{{nm animal}}</span>
   </div>
 
   <section class="profile-hero">
     <div class="profile-photo">
       {{#if animal.photo_url}}
-        <img src={{animal.photo_url}} alt="{{animal.name_en}} — Kangeyam {{if (eq animal.sex 'BULL') 'bull' 'cow'}}">
+        <img src={{animal.photo_url}} alt="{{nm animal}} — Kangeyam {{if (eq animal.sex 'BULL') (tr 'bull') (tr 'cow')}}">
       {{else}}
-        <div class="no-photo">No photo yet · <LinkTo @route="animals.animal.gallery" @model={{animal.id}}>add one</LinkTo></div>
+        <div class="no-photo">{{tr "No photo yet ·"}}<LinkTo @route="animals.animal.gallery" @model={{animal.id}}>{{tr "add one"}}</LinkTo></div>
       {{/if}}
       {{#if animal.is_stub}}
-        <span class="badge badge-stub primary-flag">Stub ancestor — complete this profile</span>
+        <span class="badge badge-stub primary-flag">{{tr "Stub ancestor — complete this profile"}}</span>
       {{/if}}
     </div>
 
     <div class="card" style="display:flex;flex-direction:column;gap:12px">
       <div>
         <div class="row-wrap" style="gap:7px;margin-bottom:6px">
-          <span class="badge {{if (eq animal.sex "BULL") "badge-bull" "badge-cow"}}">{{animal.sex}}</span>
-          <span class="badge badge-gen">{{animal.documented_generations}} documented generation{{if (eq animal.documented_generations 1) "" "s"}}</span>
+          <span class="badge {{if (eq animal.sex "BULL") "badge-bull" "badge-cow"}}">{{tr animal.sex}}</span>
+          <span class="badge badge-gen">{{tr "{{n}} documented generations" n=animal.documented_generations}}</span>
           {{#if animal.tag_or_reg_no}}<span class="badge mono">{{animal.tag_or_reg_no}}</span>{{/if}}
-          <span class="badge {{if (eq animal.status "ACTIVE") "badge-live" "badge-muted"}}">{{animal.labels.status.en}}</span>
+          <span class="badge {{if (eq animal.status "ACTIVE") "badge-live" "badge-muted"}}">{{lbl animal.labels.status}}</span>
           {{#unless (eq animal.review_status "APPROVED")}}
-            <span class="badge badge-muted" title="Only visible to administrators">Pending review</span>
+            <span class="badge badge-muted" title={{tr "Only visible to administrators"}}>{{tr "Pending review"}}</span>
           {{/unless}}
         </div>
-        <h1 class="profile-title">{{animal.name_en}}</h1>
-        <div class="profile-ta ta">{{animal.name_ta}}</div>
+        <h1 class="profile-title">{{nm animal}}</h1>
+        <div class="profile-ta ta">{{nm2 animal}}</div>
       </div>
 
       <div class="detail-grid">
         <div class="detail">
-          <div class="k">Coat colour</div>
-          <div class="v row" style="gap:6px"><ColorDot @color={{animal.current_color}} /> {{animal.labels.current_color.ta}}<span class="muted tiny">/ {{animal.labels.current_color.en}}</span></div>
+          <div class="k">{{tr "Coat colour"}}</div>
+          <div class="v row" style="gap:6px"><ColorDot @color={{animal.current_color}} /> {{lbl animal.labels.current_color}}</div>
         </div>
         <div class="detail">
-          <div class="k">Age</div>
-          <div class="v">{{animal.age.label}}</div>
+          <div class="k">{{tr "Age"}}</div>
+          <div class="v">{{lbl animal.age.label}}</div>
         </div>
         <div class="detail">
-          <div class="k">Born</div>
-          <div class="v">{{if animal.dob animal.dob "Unknown"}}{{#if animal.dob}}<span class="tiny muted"> · {{animal.labels.dob_precision.en}}</span>{{/if}}</div>
+          <div class="k">{{tr "Born"}}</div>
+          <div class="v">{{if animal.dob animal.dob "Unknown"}}{{#if animal.dob}}<span class="tiny muted"> · {{lbl animal.labels.dob_precision}}</span>{{/if}}</div>
         </div>
         {{#if animal.labels.dentition_stage}}
           <div class="detail">
-            <div class="k">Dentition</div>
-            <div class="v">{{animal.labels.dentition_stage.en}}</div>
+            <div class="k">{{tr "Dentition"}}</div>
+            <div class="v">{{lbl animal.labels.dentition_stage}}</div>
           </div>
         {{/if}}
         {{#if animal.labels.birth_color}}
           <div class="detail">
-            <div class="k">Calf coat</div>
-            <div class="v">{{animal.labels.birth_color.en}}</div>
+            <div class="k">{{tr "Calf coat"}}</div>
+            <div class="v">{{lbl animal.labels.birth_color}}</div>
           </div>
         {{/if}}
         <div class="detail">
-          <div class="k">Location</div>
-          <div class="v">{{if animal.current_village animal.current_village "—"}}{{#if animal.current_district}}, {{animal.current_district}}{{/if}}</div>
+          <div class="k">{{tr "Location"}}</div>
+          <div class="v">{{#if animal.current_village}}{{tr animal.current_village}}{{#if animal.current_district}}, {{tr animal.current_district}}{{/if}}{{else}}—{{/if}}</div>
         </div>
         <div class="detail">
-          <div class="k">Sire</div>
-          <div class="v">{{#if animal.sire}}<LinkTo @route="animals.animal" @model={{animal.sire.id}}>{{animal.sire.name_en}}</LinkTo>{{else}}<span class="muted">Unknown</span>{{/if}}</div>
+          <div class="k">{{tr "Sire"}}</div>
+          <div class="v">{{#if animal.sire}}<LinkTo @route="animals.animal" @model={{animal.sire.id}}>{{nm animal.sire}}</LinkTo>{{else}}<span class="muted">{{tr "Unknown"}}</span>{{/if}}</div>
         </div>
         <div class="detail">
-          <div class="k">Dam</div>
-          <div class="v">{{#if animal.dam}}<LinkTo @route="animals.animal" @model={{animal.dam.id}}>{{animal.dam.name_en}}</LinkTo>{{else}}<span class="muted">Unknown</span>{{/if}}</div>
+          <div class="k">{{tr "Dam"}}</div>
+          <div class="v">{{#if animal.dam}}<LinkTo @route="animals.animal" @model={{animal.dam.id}}>{{nm animal.dam}}</LinkTo>{{else}}<span class="muted">{{tr "Unknown"}}</span>{{/if}}</div>
         </div>
         <div class="detail">
-          <div class="k">Progeny</div>
-          <div class="v">{{animal.offspring_count}} registered</div>
+          <div class="k">{{tr "Progeny"}}</div>
+          <div class="v">{{tr "{{n}} registered" n=animal.offspring_count}}</div>
         </div>
       </div>
 
       {{#if animal.distinctive_markings}}
         <div class="notice small" style="background:var(--paper-2);border-color:var(--line)">
-          <strong>Markings:</strong> <span class="ta">{{animal.distinctive_markings}}</span>
+          <strong>{{tr "Markings:"}}</strong> <span class="alt-name">{{animal.distinctive_markings}}</span>
         </div>
       {{/if}}
 
       <div class="row-wrap" style="margin-top:auto">
-        <LinkTo @route="animals.animal.edit" @model={{animal.id}} class="btn btn-primary btn-sm">Edit details</LinkTo>
-        <LinkTo @route="animals.animal.pedigree" @model={{animal.id}} class="btn btn-ghost btn-sm">View pedigree</LinkTo>
-        <LinkTo @route="animals.animal.card" @model={{animal.id}} class="btn btn-ghost btn-sm">Certificate</LinkTo>
+        <LinkTo @route="animals.animal.edit" @model={{animal.id}} class="btn btn-primary btn-sm">{{tr "Edit details"}}</LinkTo>
+        <LinkTo @route="animals.animal.pedigree" @model={{animal.id}} class="btn btn-ghost btn-sm">{{tr "View pedigree"}}</LinkTo>
+        <LinkTo @route="animals.animal.card" @model={{animal.id}} class="btn btn-ghost btn-sm">{{tr "Certificate"}}</LinkTo>
       </div>
     </div>
   </section>

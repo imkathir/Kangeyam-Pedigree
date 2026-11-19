@@ -5,14 +5,14 @@
       <div class="card">
         <div class="between" style="align-items:flex-start">
           <div>
-            <div class="eyebrow">Pedigree documentation</div>
-            <h2 style="margin:0">{{animal.documented_generations}} generation{{if (eq animal.documented_generations 1) "" "s"}} documented</h2>
+            <div class="eyebrow">{{tr "Pedigree documentation"}}</div>
+            <h2 style="margin:0">{{tr "{{n}} generations documented" n=animal.documented_generations}}</h2>
             <p class="small muted" style="margin:4px 0 0">
-              {{this.model.pedigree.ancestor_count}} ancestor{{if (eq this.model.pedigree.ancestor_count 1) "" "s"}} recorded ·
-              {{this.model.completeness}}% of a four-generation pedigree is known.
+              {{tr "{{n}} ancestors recorded" n=this.model.pedigree.ancestor_count}} ·
+              {{tr "{{pct}}% of a four-generation pedigree is known." pct=this.model.completeness}}
             </p>
           </div>
-          <LinkTo @route="animals.animal.pedigree" @model={{animal.id}} class="btn btn-ghost btn-sm">Open tree →</LinkTo>
+          <LinkTo @route="animals.animal.pedigree" @model={{animal.id}} class="btn btn-ghost btn-sm">{{tr "Open tree →"}}</LinkTo>
         </div>
 
         <div class="stack-sm" style="margin-top:16px">
@@ -23,11 +23,11 @@
                 {{#if row.animals.length}}
                   {{#each row.animals as |a|}}
                     <LinkTo @route="animals.animal" @model={{a.id}} class="chip" style="padding:3px 9px;font-size:0.8rem">
-                      {{a.name_en}} <span class="ta muted">{{a.name_ta}}</span>
+                      {{nm a}} <span class="ta muted">{{nm2 a}}</span>
                     </LinkTo>
                   {{/each}}
                 {{else}}
-                  <span class="tiny muted">Not yet documented — parents of this level are unknown.</span>
+                  <span class="tiny muted">{{tr "Not yet documented — parents of this level are unknown."}}</span>
                 {{/if}}
               </div>
               <span class="tiny muted nowrap">{{row.known}}/{{row.expected}}</span>
@@ -38,7 +38,7 @@
 
       <div class="card">
         <div class="between">
-          <h2 style="margin:0">Achievements</h2>
+          <h2 style="margin:0">{{tr "Achievements"}}</h2>
           <LinkTo @route="animals.animal.achievements" @model={{animal.id}} class="small">All {{animal.achievement_count}} →</LinkTo>
         </div>
         {{#if animal.achievements.length}}
@@ -48,74 +48,71 @@
             {{/each}}
           </div>
         {{else}}
-          <EmptyState @icon="🏅" @title="No achievements recorded yet" @text="Log Rekla races, Jallikattu prizes, breed show placings or milk records.">
-            <LinkTo @route="animals.animal.achievements" @model={{animal.id}} class="btn btn-primary btn-sm">Add an achievement</LinkTo>
+          <EmptyState @icon="🏅" @title={{tr "No achievements recorded yet"}} @text={{tr "Log Rekla races, Jallikattu prizes, breed show placings or milk records."}}>
+            <LinkTo @route="animals.animal.achievements" @model={{animal.id}} class="btn btn-primary btn-sm">{{tr "Add an achievement"}}</LinkTo>
           </EmptyState>
         {{/if}}
       </div>
 
       <div class="card">
         <div class="between">
-          <h2 style="margin:0">Progeny</h2>
-          <span class="small muted">{{animal.offspring_count}} registered</span>
+          <h2 style="margin:0">{{tr "Progeny"}}</h2>
+          <span class="small muted">{{tr "{{n}} registered" n=animal.offspring_count}}</span>
         </div>
         {{#if animal.offspring.length}}
           <div class="grid grid-auto" style="margin-top:12px">
             {{#each animal.offspring as |child|}}
               <LinkTo @route="animals.animal" @model={{child.id}} class="chip" style="padding:8px 12px;justify-content:flex-start">
                 <span class="badge {{if (eq child.sex "BULL") "badge-bull" "badge-cow"}}">{{child.sex}}</span>
-                <span><strong>{{child.name_en}}</strong> <span class="ta muted">{{child.name_ta}}</span></span>
+                <span><strong>{{nm child}}</strong> <span class="alt-name">{{nm2 child}}</span></span>
               </LinkTo>
             {{/each}}
           </div>
         {{else}}
-          <p class="small muted" style="margin:10px 0 0">
-            No calf of this animal is registered yet. When a calf is added with
-            <em>{{animal.name_en}}</em> as sire or dam, it will appear here automatically.
-          </p>
+          <p class="small muted" style="margin:10px 0 0">{{tr "No calf of this animal is registered yet. When a calf is added with"}}<em>{{nm animal}}</em>{{tr "as sire or dam, it will appear here automatically."}}</p>
         {{/if}}
       </div>
     </div>
 
     <aside class="stack">
       <div class="card">
-        <div class="eyebrow">Current owner</div>
+        <div class="eyebrow">{{tr "Current owner"}}</div>
         {{#if animal.current_owner}}
-          <h3 style="margin-bottom:2px">{{animal.current_owner.name_en}}</h3>
-          <div class="ta muted small">{{animal.current_owner.name_ta}}</div>
+          <h3 style="margin-bottom:2px">{{nm animal.current_owner}}</h3>
+          <div class="ta muted small">{{nm2 animal.current_owner}}</div>
           {{#if animal.current_owner.farm_name}}<div class="small">{{animal.current_owner.farm_name}}</div>{{/if}}
           <div class="kv-list" style="margin-top:10px">
-            <div class="kv"><span class="k">Village</span><span>{{or animal.current_owner.village "—"}}</span></div>
-            <div class="kv"><span class="k">District</span><span>{{or animal.current_owner.district "—"}}</span></div>
-            <div class="kv"><span class="k">Since</span><span>{{or animal.current_owner.since "—"}}</span></div>
-            <div class="kv"><span class="k">Phone</span>
-              <span>{{#if animal.current_owner.phone}}<a href="tel:{{animal.current_owner.phone}}">{{animal.current_owner.phone}}</a>{{else}}{{#if animal.current_owner.is_contact_public}}—{{else}}<em class="muted tiny">kept private</em>{{/if}}{{/if}}</span>
+            <div class="kv"><span class="k">{{tr "Village"}}</span><span>{{or (tr animal.current_owner.village) "—"}}</span></div>
+            <div class="kv"><span class="k">{{tr "District"}}</span><span>{{or (tr animal.current_owner.district) "—"}}</span></div>
+            <div class="kv"><span class="k">{{tr "Since"}}</span><span>{{or animal.current_owner.since "—"}}</span></div>
+            <div class="kv"><span class="k">{{tr "Phone"}}</span>
+              <span>{{#if animal.current_owner.phone}}<a href="tel:{{animal.current_owner.phone}}">{{animal.current_owner.phone}}</a>{{else}}{{#if animal.current_owner.is_contact_public}}—{{else}}<em class="muted tiny">{{tr "kept private"}}</em>{{/if}}{{/if}}</span>
             </div>
           </div>
           <div class="row-wrap" style="margin-top:12px">
-            <LinkTo @route="owners.owner" @model={{animal.current_owner.owner_id}} class="btn btn-ghost btn-sm">Owner profile</LinkTo>
-            <LinkTo @route="animals.animal.ownership" @model={{animal.id}} class="btn btn-quiet btn-sm">History</LinkTo>
+            <LinkTo @route="owners.owner" @model={{animal.current_owner.owner_id}} class="btn btn-ghost btn-sm">{{tr "Owner profile"}}</LinkTo>
+            <LinkTo @route="animals.animal.ownership" @model={{animal.id}} class="btn btn-quiet btn-sm">{{tr "History"}}</LinkTo>
           </div>
         {{else}}
-          <p class="small muted" style="margin:8px 0">No owner is recorded yet.</p>
-          <LinkTo @route="animals.animal.ownership" @model={{animal.id}} class="btn btn-ghost btn-sm">Record an owner</LinkTo>
+          <p class="small muted" style="margin:8px 0">{{tr "No owner is recorded yet."}}</p>
+          <LinkTo @route="animals.animal.ownership" @model={{animal.id}} class="btn btn-ghost btn-sm">{{tr "Record an owner"}}</LinkTo>
         {{/if}}
       </div>
 
       <div class="card">
-        <div class="eyebrow">Identity</div>
+        <div class="eyebrow">{{tr "Identity"}}</div>
         <div class="kv-list">
-          <div class="kv"><span class="k">Registry tag</span><span class="mono">{{or animal.tag_or_reg_no "—"}}</span></div>
-          <div class="kv"><span class="k">Record created</span><span>{{animal.created_at}}</span></div>
-          <div class="kv"><span class="k">Generation</span><span>{{animal.documented_generations}}</span></div>
-          <div class="kv"><span class="k">Stub profile</span><span>{{if animal.is_stub "Yes" "No"}}</span></div>
+          <div class="kv"><span class="k">{{tr "Registry tag"}}</span><span class="mono">{{or animal.tag_or_reg_no "—"}}</span></div>
+          <div class="kv"><span class="k">{{tr "Record created"}}</span><span>{{animal.created_at}}</span></div>
+          <div class="kv"><span class="k">{{tr "Generation"}}</span><span>{{animal.documented_generations}}</span></div>
+          <div class="kv"><span class="k">{{tr "Stub profile"}}</span><span>{{if animal.is_stub (tr "Yes") (tr "No")}}</span></div>
         </div>
         {{#if animal.notes}}<p class="small muted" style="margin:12px 0 0">{{animal.notes}}</p>{{/if}}
       </div>
 
       {{#if animal.breeding_events.length}}
         <div class="card">
-          <div class="eyebrow">Mating &amp; calving log</div>
+          <div class="eyebrow">{{tr "Mating &amp; calving log"}}</div>
           <div class="stack-sm">
             {{#each animal.breeding_events as |b|}}
               <div class="small" style="padding-bottom:8px;border-bottom:1px dashed var(--line)">

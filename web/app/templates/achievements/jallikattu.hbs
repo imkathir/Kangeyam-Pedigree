@@ -1,12 +1,11 @@
 <div class="stack">
   <div class="notice" style="background:var(--ochre-soft);border-color:#e9d9b6;color:#7d5713">
-    <strong>ஜல்லிக்கட்டு · Jallikattu.</strong> The highest honour for a Kangeyam bull is to leave the
-    <em>vadivasal</em> uncaught — <em>Pidipadaatha Kaalai</em> (பிடிபடாத காளை).
+    <strong>{{tr "ஜல்லிக்கட்டு · Jallikattu."}}</strong>{{tr "The highest honour for a Kangeyam bull is to leave the"}}<em>{{tr "vadivasal"}}</em>{{tr "uncaught —"}}<em>{{tr "Pidipadaatha Kaalai"}}</em> (பிடிபடாத காளை).
   </div>
 
   <div class="sidebar-layout">
     <div class="stack">
-      <div class="section-title"><h2>Jallikattu records ({{@model.meta.total}})</h2></div>
+      <div class="section-title"><h2>{{tr "Jallikattu records ({{n}})" n=@model.meta.total}}</h2></div>
       {{#if @model.data.length}}
         <div class="stack-sm">
           {{#each @model.data as |ach|}}
@@ -14,20 +13,20 @@
           {{/each}}
         </div>
       {{else}}
-        <EmptyState @icon="🐂" @title="No Jallikattu records yet" @text="Log a bull's performance at Palamedu, Alanganallur, Sooriyur or any village manju virattu." />
+        <EmptyState @icon="🐂" @title={{tr "No Jallikattu records yet"}} @text={{tr "Log a bull's performance at Palamedu, Alanganallur, Sooriyur or any village manju virattu."}} />
       {{/if}}
     </div>
 
     <aside class="stack">
       <div class="card">
-        <div class="eyebrow">Uncaught bulls</div>
-        <h3 style="margin-top:0">Most decorated</h3>
+        <div class="eyebrow">{{tr "Uncaught bulls"}}</div>
+        <h3 style="margin-top:0">{{tr "Most decorated"}}</h3>
         <div class="stack-sm">
           {{#each @model.meta.leaderboard as |row|}}
             <div class="row" style="justify-content:space-between">
               <LinkTo @route="animals.animal" @model={{row.id}} class="row" style="gap:7px;color:inherit">
                 <ColorDot @color={{row.current_color}} />
-                <span class="small"><strong>{{row.name_en}}</strong> <span class="ta muted">{{row.name_ta}}</span></span>
+                <span class="small"><strong>{{nm row}}</strong> <span class="alt-name">{{nm2 row}}</span></span>
               </LinkTo>
               <span class="badge badge-ochre">{{row.wins}}</span>
             </div>
@@ -35,11 +34,11 @@
         </div>
       </div>
       <div class="card">
-        <div class="eyebrow">Terminology</div>
+        <div class="eyebrow">{{tr "Terminology"}}</div>
         <div class="kv-list small">
-          <div class="kv"><span class="k ta">வடிவாசல்</span><span>Vadivasal — the narrow entry gate</span></div>
-          <div class="kv"><span class="k ta">தவசால்</span><span>Thavasal — slipping through uncaught</span></div>
-          <div class="kv"><span class="k ta">பிடிபடாத காளை</span><span>Pidipadaatha Kaalai — never caught</span></div>
+          <div class="kv"><span class="k ta">வடிவாசல்</span><span>{{tr "Vadivasal — the narrow entry gate"}}</span></div>
+          <div class="kv"><span class="k ta">தவசால்</span><span>{{tr "Thavasal — slipping through uncaught"}}</span></div>
+          <div class="kv"><span class="k ta">பிடிபடாத காளை</span><span>{{tr "Pidipadaatha Kaalai — never caught"}}</span></div>
         </div>
       </div>
     </aside>

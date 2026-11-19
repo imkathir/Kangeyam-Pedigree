@@ -1,35 +1,35 @@
 <div class="stack-lg">
   <div>
     <div class="section-title">
-      <h2>Currently owned &amp; bred ({{@model.counts.current}})</h2>
-      <LinkTo @route="animals.new" class="small">+ Register an animal for this owner</LinkTo>
+      <h2>{{tr "Currently owned & bred ({{n}})" n=@model.counts.current}}</h2>
+      <LinkTo @route="animals.new" class="small">{{tr "+ Register an animal for this owner"}}</LinkTo>
     </div>
     {{#if @model.currently_owned.length}}
       <div class="grid grid-auto">
         {{#each @model.currently_owned as |row|}}
           <div class="stack-sm">
             <AnimalCard @animal={{row.animal}} />
-            <div class="tiny muted" style="padding-left:4px">{{row.role_label.en}}{{#if row.from_date}} · since {{row.from_date}}{{/if}}{{#if row.place_note}} · {{row.place_note}}{{/if}}</div>
+            <div class="tiny muted" style="padding-left:4px">{{lbl row.role_label}}{{#if row.from_date}} · {{tr "since {{date}}" date=row.from_date}}{{/if}}{{#if row.place_note}} · {{row.place_note}}{{/if}}</div>
           </div>
         {{/each}}
       </div>
     {{else}}
-      <EmptyState @icon="🐄" @title="No current animals" @text="Animals appear here when this breeder is recorded as their current owner." />
+      <EmptyState @icon="🐄" @title={{tr "No current animals"}} @text={{tr "Animals appear here when this breeder is recorded as their current owner."}} />
     {{/if}}
   </div>
 
   <div>
-    <div class="section-title"><h2>Previously owned ({{@model.counts.previous}})</h2></div>
+    <div class="section-title"><h2>{{tr "Previously owned ({{n}})" n=@model.counts.previous}}</h2></div>
     {{#if @model.previously_owned.length}}
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Animal</th><th>Sex</th><th>Colour</th><th>Period</th><th>Place</th></tr></thead>
+          <thead><tr><th>{{tr "Animal"}}</th><th>{{tr "Sex"}}</th><th>{{tr "Colour"}}</th><th>{{tr "Period"}}</th><th>{{tr "Place"}}</th></tr></thead>
           <tbody>
             {{#each @model.previously_owned as |row|}}
               <tr>
-                <td><LinkTo @route="animals.animal" @model={{row.animal.id}}>{{row.animal.name_en}}</LinkTo> <span class="ta muted small">{{row.animal.name_ta}}</span></td>
-                <td><span class="badge {{if (eq row.animal.sex "BULL") "badge-bull" "badge-cow"}}">{{row.animal.sex}}</span></td>
-                <td class="row" style="gap:6px"><ColorDot @color={{row.animal.current_color}} /> {{row.animal.color_label.en}}</td>
+                <td><LinkTo @route="animals.animal" @model={{row.animal.id}}>{{nm row.animal}}</LinkTo> <span class="ta muted small">{{nm2 row.animal}}</span></td>
+                <td><span class="badge {{if (eq row.animal.sex "BULL") "badge-bull" "badge-cow"}}">{{tr row.animal.sex}}</span></td>
+                <td class="row" style="gap:6px"><ColorDot @color={{row.animal.current_color}} /> {{lbl row.animal.color_label}}</td>
                 <td class="small">{{or row.from_date "?"}} → {{or row.to_date "?"}}</td>
                 <td class="small">{{or row.place_note "—"}}</td>
               </tr>
@@ -38,7 +38,7 @@
         </table>
       </div>
     {{else}}
-      <p class="small muted">No previous ownership records.</p>
+      <p class="small muted">{{tr "No previous ownership records."}}</p>
     {{/if}}
   </div>
 </div>

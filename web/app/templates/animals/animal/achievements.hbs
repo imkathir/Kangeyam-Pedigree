@@ -1,60 +1,58 @@
 <div class="stack">
   <div class="between">
     <div>
-      <div class="eyebrow">Competitive &amp; breeding record</div>
-      <h2 style="margin:0">Achievements of {{this.animal.name_en}}</h2>
-      <p class="small muted" style="margin:4px 0 0">
-        Rekla races, Jallikattu prizes, breed show placings, milk records, progeny milestones and draught endurance.
-      </p>
+      <div class="eyebrow">{{tr "Competitive &amp; breeding record"}}</div>
+      <h2 style="margin:0">{{tr "Achievements of {{name}}" name=(nm this.animal)}}</h2>
+      <p class="small muted" style="margin:4px 0 0">{{tr "Rekla races, Jallikattu prizes, breed show placings, milk records, progeny milestones and draught endurance."}}</p>
     </div>
     <button type="button" class="btn btn-primary" {{on "click" this.toggleForm}}>
-      {{if this.showForm "Close form" "+ Log achievement"}}
+      {{if this.showForm (tr "Close form") (tr "+ Log achievement")}}
     </button>
   </div>
 
   {{#if this.showForm}}
     <form class="card" {{on "submit" this.save}}>
-      <div class="eyebrow">New record</div>
+      <div class="eyebrow">{{tr "New record"}}</div>
       <FormErrors @errors={{this.errors}} />
       <div class="form-grid">
         <div class="field">
-          <label for="cat">Category <span class="req">*</span></label>
+          <label for="cat">{{tr "Category"}}<span class="req">*</span></label>
           <select id="cat" {{on "change" (fn this.set "category")}}>
             {{#each this.categories as |c|}}
-              <option value={{c.value}} selected={{eq this.category c.value}}>{{c.icon}} {{c.en}} · {{c.ta}}</option>
+              <option value={{c.value}} selected={{eq this.category c.value}}>{{c.icon}} {{lbl c}}</option>
             {{/each}}
           </select>
         </div>
         <div class="field">
-          <label for="ev">Event name <span class="req">*</span></label>
-          <input id="ev" type="text" value={{this.event_name}} placeholder="Kangeyam Rekla Race 2026" {{on "input" (fn this.set "event_name")}}>
+          <label for="ev">{{tr "Event name"}}<span class="req">*</span></label>
+          <input id="ev" type="text" value={{this.event_name}} placeholder={{tr "Kangeyam Rekla Race 2026"}} {{on "input" (fn this.set "event_name")}}>
         </div>
         <div class="field">
-          <label for="loc">Location</label>
-          <input id="loc" type="text" value={{this.location}} placeholder="Kangeyam, Tiruppur" {{on "input" (fn this.set "location")}}>
+          <label for="loc">{{tr "Location"}}</label>
+          <input id="loc" type="text" value={{this.location}} placeholder={{tr "Kangeyam, Tiruppur"}} {{on "input" (fn this.set "location")}}>
         </div>
         <div class="field">
-          <label for="ed">Event date</label>
+          <label for="ed">{{tr "Event date"}}</label>
           <input id="ed" type="date" value={{this.event_date}} {{on "input" (fn this.set "event_date")}}>
         </div>
         <div class="field span-2">
-          <label for="rank">Rank or metric <span class="req">*</span></label>
-          <input id="rank" type="text" value={{this.rank_or_metric}} placeholder="1st Place — 200m (23.9s) / Pidipadaatha Kaalai / Peak 3.5 L/day A2" {{on "input" (fn this.set "rank_or_metric")}}>
-          <div class="hint">Free text: keep the traditional title (e.g. <em>Pidipadaatha Kaalai</em>) alongside numbers.</div>
+          <label for="rank">{{tr "Rank or metric"}}<span class="req">*</span></label>
+          <input id="rank" type="text" value={{this.rank_or_metric}} placeholder={{tr "1st Place — 200m (23.9s) / Pidipadaatha Kaalai / Peak 3.5 L/day A2"}} {{on "input" (fn this.set "rank_or_metric")}}>
+          <div class="hint">{{tr "Free text: keep the traditional title (e.g."}}<em>{{tr "Pidipadaatha Kaalai"}}</em>{{tr ") alongside numbers."}}</div>
         </div>
         <div class="field span-2">
-          <label>Paired animal <span class="muted">(optional — for two-bull Rekla cart races)</span></label>
-          <AnimalSearch @selected={{this.partner}} @onSelect={{this.pickPartner}} @excludeId={{this.animal.id}} @placeholder="Search the co-running bull…" />
+          <label>{{tr "Paired animal"}}<span class="muted">{{tr "(optional — for two-bull Rekla cart races)"}}</span></label>
+          <AnimalSearch @selected={{this.partner}} @onSelect={{this.pickPartner}} @excludeId={{this.animal.id}} @placeholder={{tr "Search the co-running bull…"}} />
         </div>
         <div class="field span-2">
-          <label for="notes">Notes</label>
-          <textarea id="notes" value={{this.notes}} placeholder="Crowd, conditions, pairing notes…" {{on "input" (fn this.set "notes")}}></textarea>
+          <label for="notes">{{tr "Notes"}}</label>
+          <textarea id="notes" value={{this.notes}} placeholder={{tr "Crowd, conditions, pairing notes…"}} {{on "input" (fn this.set "notes")}}></textarea>
         </div>
       </div>
       <FormErrors @errors={{this.errors}} />
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" disabled={{this.saving}}>{{if this.saving "Saving…" "Save achievement"}}</button>
-        <button type="button" class="btn btn-ghost" {{on "click" this.toggleForm}}>Cancel</button>
+        <button type="submit" class="btn btn-primary" disabled={{this.saving}}>{{if this.saving (tr "Saving…") (tr "Save achievement")}}</button>
+        <button type="button" class="btn btn-ghost" {{on "click" this.toggleForm}}>{{tr "Cancel"}}</button>
       </div>
     </form>
   {{/if}}
@@ -65,7 +63,7 @@
         <div class="stack">
           <div class="row" style="gap:8px">
             <span style="font-size:1.2rem" aria-hidden="true">{{group.label.icon}}</span>
-            <h3 style="margin:0">{{group.label.en}}</h3>
+            <h3 style="margin:0">{{lbl group.label}}</h3>
             <span class="badge">{{group.items.length}}</span>
           </div>
           <div class="stack-sm">
@@ -73,11 +71,11 @@
               <AchievementCard @achievement={{ach}}>
                 {{#if (eq this.confirmId ach.id)}}
                   <div class="row" style="gap:6px">
-                    <button type="button" class="btn btn-danger btn-sm" {{on "click" (fn this.remove ach.id)}}>Confirm</button>
-                    <button type="button" class="btn btn-quiet btn-sm" {{on "click" this.askDelete}}>No</button>
+                    <button type="button" class="btn btn-danger btn-sm" {{on "click" (fn this.remove ach.id)}}>{{tr "Confirm"}}</button>
+                    <button type="button" class="btn btn-quiet btn-sm" {{on "click" this.askDelete}}>{{tr "No"}}</button>
                   </div>
                 {{else}}
-                  <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.askDelete ach.id)}}>Remove</button>
+                  <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.askDelete ach.id)}}>{{tr "Remove"}}</button>
                 {{/if}}
               </AchievementCard>
             {{/each}}
@@ -86,12 +84,10 @@
       {{/each}}
     </div>
   {{else}}
-    <EmptyState @icon="🏅" @title="No achievements recorded yet" @text="Every Rekla win, Jallikattu prize and milk record you log here becomes part of the animal's permanent record.">
-      <button type="button" class="btn btn-primary" {{on "click" this.toggleForm}}>Log the first achievement</button>
+    <EmptyState @icon="🏅" @title={{tr "No achievements recorded yet"}} @text={{tr "Every Rekla win, Jallikattu prize and milk record you log here becomes part of the animal's permanent record."}}>
+      <button type="button" class="btn btn-primary" {{on "click" this.toggleForm}}>{{tr "Log the first achievement"}}</button>
     </EmptyState>
   {{/if}}
 
-  <div class="notice small">
-    Paired Rekla bulls are linked across both records — open the partner's page to see the same race from the other side of the cart.
-  </div>
+  <div class="notice small">{{tr "Paired Rekla bulls are linked across both records — open the partner's page to see the same race from the other side of the cart."}}</div>
 </div>

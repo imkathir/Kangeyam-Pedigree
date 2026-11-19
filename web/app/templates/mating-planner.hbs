@@ -1,41 +1,38 @@
 <div class="stack">
   <div>
-    <div class="eyebrow">Lineage compatibility · இரத்த உறவு சோதனை</div>
-    <h1 style="margin:0">Mating planner</h1>
-    <p class="muted small" style="margin:6px 0 0">
-      Choose a bull and a cow. The planner walks every recorded ancestor of both animals — however many
-      generations deep — and reports the shared bloodlines before you plan a calving.
-    </p>
+    <div class="eyebrow">{{tr "Lineage compatibility · இரத்த உறவு சோதனை"}}</div>
+    <h1 style="margin:0">{{tr "Mating planner"}}</h1>
+    <p class="muted small" style="margin:6px 0 0">{{tr "Choose a bull and a cow. The planner walks every recorded ancestor of both animals — however many generations deep — and reports the shared bloodlines before you plan a calving."}}</p>
   </div>
 
   <div class="card">
     <div class="grid" style="grid-template-columns:1fr; gap:14px">
       <div class="grid" style="grid-template-columns:1fr; gap:14px" >
         <div class="field" style="margin:0">
-          <label for="sire">Sire (bull) ♂</label>
+          <label for="sire">{{tr "Sire (bull) ♂"}}</label>
           <select id="sire" {{on "change" this.setSire}}>
-            <option value="">— Choose a bull —</option>
+            <option value="">{{tr "— Choose a bull —"}}</option>
             {{#each @model.bulls as |b|}}
-              <option value={{b.id}} selected={{eq (concat "" @model.sireId) (concat "" b.id)}}>{{b.name_en}} · {{b.name_ta}}{{#if b.current_village}} — {{b.current_village}}{{/if}}</option>
+              <option value={{b.id}} selected={{eq (concat "" @model.sireId) (concat "" b.id)}}>{{nm b}}{{#if b.current_village}} — {{b.current_village}}{{/if}}</option>
             {{/each}}
           </select>
         </div>
         <div class="row" style="justify-content:center">
-          <button type="button" class="btn btn-ghost btn-sm" {{on "click" this.swap}}>⇄ Swap</button>
+          <button type="button" class="btn btn-ghost btn-sm" {{on "click" this.swap}}>{{tr "⇄ Swap"}}</button>
         </div>
         <div class="field" style="margin:0">
-          <label for="dam">Dam (cow) ♀</label>
+          <label for="dam">{{tr "Dam (cow) ♀"}}</label>
           <select id="dam" {{on "change" this.setDam}}>
-            <option value="">— Choose a cow —</option>
+            <option value="">{{tr "— Choose a cow —"}}</option>
             {{#each @model.cows as |c|}}
-              <option value={{c.id}} selected={{eq (concat "" @model.damId) (concat "" c.id)}}>{{c.name_en}} · {{c.name_ta}}{{#if c.current_village}} — {{c.current_village}}{{/if}}</option>
+              <option value={{c.id}} selected={{eq (concat "" @model.damId) (concat "" c.id)}}>{{nm c}}{{#if c.current_village}} — {{c.current_village}}{{/if}}</option>
             {{/each}}
           </select>
         </div>
       </div>
       <div class="row-wrap">
-        <LinkTo @route="mating-planner" @query={{hash sire=@model.sireId dam=@model.damId}} class="btn btn-primary">Check compatibility</LinkTo>
-        <button type="button" class="btn btn-quiet" {{on "click" this.reset}}>Clear</button>
+        <LinkTo @route="mating-planner" @query={{hash sire=@model.sireId dam=@model.damId}} class="btn btn-primary">{{tr "Check compatibility"}}</LinkTo>
+        <button type="button" class="btn btn-quiet" {{on "click" this.reset}}>{{tr "Clear"}}</button>
       </div>
     </div>
   </div>
@@ -49,51 +46,51 @@
       <div class="card" style="border-width:2px;border-color:{{if (eq r.risk_level 'HIGH') '#e0a9a4' (if (eq r.risk_level 'MODERATE') '#e9d9b6' (if (eq r.risk_level 'LOW') '#cbe1d1' 'var(--line)'))}}">
         <div class="between" style="align-items:flex-start">
           <div>
-            <div class="eyebrow">Result</div>
-            <h2 style="margin:0">{{r.sire.name_en}} × {{r.dam.name_en}}</h2>
-            {{#if r.relationship}}<div class="small muted" style="margin-top:2px">{{r.relationship}}</div>{{/if}}
+            <div class="eyebrow">{{tr "Result"}}</div>
+            <h2 style="margin:0">{{nm r.sire}} × {{nm r.dam}}</h2>
+            {{#if r.relationship}}<div class="small muted" style="margin-top:2px">{{tr r.relationship}}</div>{{/if}}
           </div>
           <span class="badge {{if (eq r.risk_level 'HIGH') 'badge-cow' (if (eq r.risk_level 'MODERATE') 'badge-ochre' (if (eq r.risk_level 'LOW') 'badge-gen' 'badge-muted'))}}" style="font-size:0.85rem;padding:6px 12px">
-            {{r.risk_level}} inbreeding risk
+            {{tr "{{risk}} inbreeding risk" risk=(tr r.risk_level)}}
           </span>
         </div>
 
         <div class="stat-grid" style="margin-top:16px">
-          <StatCard @value={{r.inbreeding_percent}} @label="Inbreeding coefficient" @sub="Wright's F for the calf" />
-          <StatCard @value={{r.closest_ancestor_count}} @label="Closest shared ancestors" @sub={{concat r.shared_ancestor_count " shared in total"}} />
-          <StatCard @value={{r.sire.documented_generations}} @label={{concat r.sire.name_en " depth"}} @sub="Generations documented" />
-          <StatCard @value={{r.dam.documented_generations}} @label={{concat r.dam.name_en " depth"}} @sub="Generations documented" />
+          <StatCard @value={{r.inbreeding_percent}} @label={{tr "Inbreeding coefficient"}} @sub={{tr "Wright's F for the calf"}} />
+          <StatCard @value={{r.closest_ancestor_count}} @label={{tr "Closest shared ancestors"}} @sub={{concat r.shared_ancestor_count " shared in total"}} />
+          <StatCard @value={{r.sire.documented_generations}} @label={{concat r.sire.name_en " depth"}} @sub={{tr "Generations documented"}} />
+          <StatCard @value={{r.dam.documented_generations}} @label={{concat r.dam.name_en " depth"}} @sub={{tr "Generations documented"}} />
         </div>
 
-        <p class="small" style="margin:16px 0 0"><strong>Verdict:</strong> {{r.verdict}}</p>
+        <p class="small" style="margin:16px 0 0"><strong>{{tr "Verdict:"}}</strong> {{tr r.verdict}}</p>
 
         {{#if r.warnings.length}}
           <div class="error-box" style="margin-top:14px">
-            <strong>Warnings</strong>
+            <strong>{{tr "Warnings"}}</strong>
             <ul>{{#each r.warnings as |w|}}<li>{{w}}</li>{{/each}}</ul>
           </div>
         {{/if}}
 
         {{#if r.shared_ancestors.length}}
           <hr class="divider">
-          <h3 style="margin-top:0">Shared ancestors</h3>
+          <h3 style="margin-top:0">{{tr "Shared ancestors"}}</h3>
           <div class="table-wrap">
             <table>
               <thead>
-                <tr><th>Ancestor</th><th>Up from sire</th><th>Up from dam</th><th class="right">Contribution to F</th></tr>
+                <tr><th>{{tr "Ancestor"}}</th><th>{{tr "Up from sire"}}</th><th>{{tr "Up from dam"}}</th><th class="right">{{tr "Contribution to F"}}</th></tr>
               </thead>
               <tbody>
                 {{#each r.shared_ancestors as |s|}}
                   <tr>
                     <td>
-                      <LinkTo @route="animals.animal" @model={{s.ancestor.id}}>{{s.ancestor.name_en}}</LinkTo>
-                      <span class="ta muted small">{{s.ancestor.name_ta}}</span>
-                      {{#if s.ancestor.is_stub}}<span class="badge badge-stub">stub</span>{{/if}}
-                      {{#if s.is_closest}}<span class="badge badge-gen">closest</span>{{/if}}
-                      {{#if s.via}}<span class="tiny muted">via {{s.via.name_en}}</span>{{/if}}
+                      <LinkTo @route="animals.animal" @model={{s.ancestor.id}}>{{nm s.ancestor}}</LinkTo>
+                      <span class="ta muted small">{{nm2 s.ancestor}}</span>
+                      {{#if s.ancestor.is_stub}}<span class="badge badge-stub">{{tr "stub"}}</span>{{/if}}
+                      {{#if s.is_closest}}<span class="badge badge-gen">{{tr "closest"}}</span>{{/if}}
+                      {{#if s.via}}<span class="tiny muted">{{tr "via {{name}}" name=(nm s.via)}}</span>{{/if}}
                     </td>
-                    <td>{{s.sire_generations}} generation{{if (eq s.sire_generations 1) "" "s"}}</td>
-                    <td>{{s.dam_generations}} generation{{if (eq s.dam_generations 1) "" "s"}}</td>
+                    <td>{{tr "{{n}} generations" n=s.sire_generations}}</td>
+                    <td>{{tr "{{n}} generations" n=s.dam_generations}}</td>
                     <td class="right mono tiny">{{if s.is_closest s.contribution "—"}}</td>
                   </tr>
                 {{/each}}
@@ -101,35 +98,26 @@
             </table>
           </div>
         {{else}}
-          <div class="notice notice-green" style="margin-top:14px">
-            No common ancestor is recorded for these two animals at any depth. They are unrelated
-            <em>as far as the registry knows</em> — document more ancestors to be certain.
-          </div>
+          <div class="notice notice-green" style="margin-top:14px">{{tr "No common ancestor is recorded for these two animals at any depth. They are unrelated"}}<em>{{tr "as far as the registry knows"}}</em>{{tr "— document more ancestors to be certain."}}</div>
         {{/if}}
 
         <div class="row-wrap" style="margin-top:18px">
-          <LinkTo @route="animals.animal.pedigree" @model={{r.sire.id}} class="btn btn-ghost btn-sm">{{r.sire.name_en}}'s pedigree</LinkTo>
-          <LinkTo @route="animals.animal.pedigree" @model={{r.dam.id}} class="btn btn-ghost btn-sm">{{r.dam.name_en}}'s pedigree</LinkTo>
+          <LinkTo @route="animals.animal.pedigree" @model={{r.sire.id}} class="btn btn-ghost btn-sm">{{tr "{{name}} pedigree" name=(nm r.sire)}}</LinkTo>
+          <LinkTo @route="animals.animal.pedigree" @model={{r.dam.id}} class="btn btn-ghost btn-sm">{{tr "{{name}} pedigree" name=(nm r.dam)}}</LinkTo>
         </div>
       </div>
     {{/let}}
   {{else if (and @model.sireId @model.damId)}}
-    <div class="empty">Choose two animals to see the analysis.</div>
+    <div class="empty">{{tr "Choose two animals to see the analysis."}}</div>
   {{else}}
     <div class="grid grid-2">
       <div class="card">
-        <div class="eyebrow">Why check?</div>
-        <p class="small muted" style="margin:0">
-          Kangeyam herds are often line-bred on purpose. The registry quantifies what oral tradition already knows:
-          how close the two animals really are, and which ancestor they share.
-        </p>
+        <div class="eyebrow">{{tr "Why check?"}}</div>
+        <p class="small muted" style="margin:0">{{tr "Kangeyam herds are often line-bred on purpose. The registry quantifies what oral tradition already knows: how close the two animals really are, and which ancestor they share."}}</p>
       </div>
       <div class="card">
-        <div class="eyebrow">How it works</div>
-        <p class="small muted" style="margin:0">
-          Both animals' ancestors are collected to unlimited depth and intersected. Each shared ancestor
-          contributes (½)<sup>n₁+n₂+1</sup> to Wright's coefficient of inbreeding of the resulting calf.
-        </p>
+        <div class="eyebrow">{{tr "How it works"}}</div>
+        <p class="small muted" style="margin:0">{{tr "Both animals' ancestors are collected to unlimited depth and intersected. Each shared ancestor contributes (½)"}}<sup>{{tr "n₁+n₂+1"}}</sup>{{tr "to Wright's coefficient of inbreeding of the resulting calf."}}</p>
       </div>
     </div>
   {{/if}}

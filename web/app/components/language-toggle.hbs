@@ -1,0 +1,8 @@
+<div class="lang-switch" role="group" aria-label={{tr "Language"}}>
+  <button type="button" class={{if this.i18n.isTamil "active"}}
+          aria-pressed={{if this.i18n.isTamil (tr "true") (tr "false")}}
+          title="தமிழ்" {{on "click" (fn this.set "ta")}}>த</button>
+  <button type="button" class={{unless this.i18n.isTamil "active"}}
+          aria-pressed={{if this.i18n.isTamil (tr "false") (tr "true")}}
+          title="English" {{on "click" (fn this.set "en")}}>EN</button>
+</div>

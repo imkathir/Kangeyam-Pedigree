@@ -1,83 +1,79 @@
 {{#if this.submitted}}
   <div class="card" style="max-width:680px">
-    <div class="eyebrow">Submitted · <span class="ta">சமர்ப்பிக்கப்பட்டது</span></div>
-    <h1 style="margin:6px 0 8px">Thank you — this breeder is waiting for review</h1>
+    <div class="eyebrow">{{tr "Submitted ·"}}<span class="alt-name">சமர்ப்பிக்கப்பட்டது</span></div>
+    <h1 style="margin:6px 0 8px">{{tr "Thank you — this breeder is waiting for review"}}</h1>
     <p style="margin:0 0 10px">
-      <strong>{{this.submitted.name_en}}</strong>
-      <span class="ta muted">{{this.submitted.name_ta}}</span> has been queued as record
-      #{{this.submitted.id}}. It will appear in the breeders directory once a registry
-      administrator approves it.
+      <strong>{{nm this.submitted}}</strong>
+      <span class="alt-name">{{nm2 this.submitted}}</span>
+      {{tr "has been queued as record #{{id}}. It will appear in the breeders directory once a registry administrator approves it." id=this.submitted.id}}
     </p>
     <div class="notice small" style="margin-bottom:14px">{{this.submitted.message}}</div>
     <div class="row-wrap">
-      <button type="button" class="btn btn-primary" {{on "click" this.startAnother}}>Add another breeder</button>
-      <LinkTo @route="owners" class="btn btn-ghost">Browse the directory</LinkTo>
+      <button type="button" class="btn btn-primary" {{on "click" this.startAnother}}>{{tr "Add another breeder"}}</button>
+      <LinkTo @route="owners" class="btn btn-ghost">{{tr "Browse the directory"}}</LinkTo>
     </div>
   </div>
 {{else}}
 <form class="stack" {{on "submit" this.save}} style="max-width:760px">
   <div>
-    <div class="eyebrow">New breeder</div>
-    <h1 style="margin:0">Add an owner, farmer or farm</h1>
-    <p class="muted small" style="margin:6px 0 0">
-      Only an English name is required. Everything else can be filled in when you know it —
-      and the phone number is hidden from public pages unless you tick the box.
-    </p>
+    <div class="eyebrow">{{tr "New breeder"}}</div>
+    <h1 style="margin:0">{{tr "Add an owner, farmer or farm"}}</h1>
+    <p class="muted small" style="margin:6px 0 0">{{tr "Only an English name is required. Everything else can be filled in when you know it — and the phone number is hidden from public pages unless you tick the box."}}</p>
   </div>
 
   <FormErrors @errors={{this.errors}} />
 
   <fieldset class="fieldset">
-    <legend>Who is it?</legend>
+    <legend>{{tr "Who is it?"}}</legend>
     <div class="form-grid">
       <div class="field">
-        <label for="name_en">Name (English) <span class="req">*</span></label>
-        <input id="name_en" type="text" value={{this.name_en}} placeholder="Murugesan" {{on "input" (fn this.set "name_en")}}>
+        <label for="name_en">{{tr "Name (English)"}}<span class="req">*</span></label>
+        <input id="name_en" type="text" value={{nm this}} placeholder={{tr "Murugesan"}} {{on "input" (fn this.set "name_en")}}>
       </div>
       <div class="field">
-        <label for="name_ta">Name (Tamil)</label>
-        <input id="name_ta" type="text" class="ta" value={{this.name_ta}} placeholder="முருகேசன்" {{on "input" (fn this.set "name_ta")}}>
+        <label for="name_ta">{{tr "Name (Tamil)"}}</label>
+        <input id="name_ta" type="text" class="alt-name" value={{nm2 this}} placeholder="முருகேசன்" {{on "input" (fn this.set "name_ta")}}>
       </div>
       <div class="field span-2">
-        <label for="farm">Farm / family title</label>
-        <input id="farm" type="text" value={{this.farm_name}} placeholder="Thambi Farms" {{on "input" (fn this.set "farm_name")}}>
+        <label for="farm">{{tr "Farm / family title"}}</label>
+        <input id="farm" type="text" value={{this.farm_name}} placeholder={{tr "Thambi Farms"}} {{on "input" (fn this.set "farm_name")}}>
       </div>
     </div>
   </fieldset>
 
   <fieldset class="fieldset">
-    <legend>Contact &amp; place</legend>
+    <legend>{{tr "Contact &amp; place"}}</legend>
     <div class="form-grid">
       <div class="field">
-        <label for="phone">Phone / WhatsApp</label>
+        <label for="phone">{{tr "Phone / WhatsApp"}}</label>
         <input id="phone" type="tel" value={{this.phone}} placeholder="+91 …" {{on "input" (fn this.set "phone")}}>
       </div>
       <div class="field">
-        <label for="village">Village / town</label>
-        <input id="village" type="text" value={{this.village}} placeholder="Kangeyam" {{on "input" (fn this.set "village")}}>
+        <label for="village">{{tr "Village / town"}}</label>
+        <input id="village" type="text" value={{this.village}} placeholder={{tr "Kangeyam"}} {{on "input" (fn this.set "village")}}>
       </div>
       <div class="field">
-        <label for="district">District</label>
+        <label for="district">{{tr "District"}}</label>
         <select id="district" {{on "change" (fn this.set "district")}}>
           {{#each this.districts as |d|}}
-            <option value={{d}} selected={{eq this.district d}}>{{d}}</option>
+            <option value={{d}} selected={{eq this.district d}}>{{tr d}}</option>
           {{/each}}
         </select>
       </div>
       <div class="field span-2">
-        <label for="notes">Notes</label>
-        <textarea id="notes" value={{this.notes}} placeholder="Bloodlines kept, awards, herd size…" {{on "input" (fn this.set "notes")}}></textarea>
+        <label for="notes">{{tr "Notes"}}</label>
+        <textarea id="notes" value={{this.notes}} placeholder={{tr "Bloodlines kept, awards, herd size…"}} {{on "input" (fn this.set "notes")}}></textarea>
       </div>
     </div>
     <label class="checkline">
       <input type="checkbox" checked={{this.is_contact_public}} {{on "change" (fn this.set "is_contact_public")}}>
-      <span>Show this owner's phone number publicly (WhatsApp enquiries from other breeders).</span>
+      <span>{{tr "Show this owner's phone number publicly (WhatsApp enquiries from other breeders)."}}</span>
     </label>
   </fieldset>
 
   <div class="row-wrap">
-    <button type="submit" class="btn btn-primary btn-lg" disabled={{this.saving}}>{{if this.saving "Saving…" "Save breeder"}}</button>
-    <LinkTo @route="owners" class="btn btn-ghost btn-lg">Cancel</LinkTo>
+    <button type="submit" class="btn btn-primary btn-lg" disabled={{this.saving}}>{{if this.saving (tr "Saving…") (tr "Save breeder")}}</button>
+    <LinkTo @route="owners" class="btn btn-ghost btn-lg">{{tr "Cancel"}}</LinkTo>
   </div>
 </form>
 {{/if}}

@@ -2,11 +2,11 @@
 <div class="stack-lg">
   <div class="between">
     <div>
-      <div class="eyebrow">Interactive family tree · வம்சாவளி</div>
-      <h2 style="margin:0">Pedigree of {{animal.name_en}}</h2>
+      <div class="eyebrow">{{tr "Interactive family tree · வம்சாவளி"}}</div>
+      <h2 style="margin:0">{{tr "Pedigree of {{name}}" name=(nm animal)}}</h2>
       <p class="small muted" style="margin:4px 0 0">
-        {{ped.ancestor_count}} ancestors recorded across {{ped.documented_generations}} generation{{if (eq ped.documented_generations 1) "" "s"}}.
-        Empty slots are simply not documented yet — nothing is assumed.
+        {{tr "{{n}} ancestors recorded across {{g}} generations." n=ped.ancestor_count g=ped.documented_generations}}
+        {{tr "Empty slots are simply not documented yet — nothing is assumed."}}
       </p>
     </div>
     <div class="segmented">
@@ -19,21 +19,21 @@
   <div class="card card-flush">
     <div style="padding:16px 18px;border-bottom:1px solid var(--line);display:flex;gap:14px;flex-wrap:wrap;justify-content:space-between;align-items:center">
       <div class="tree-legend">
-        <span><span class="badge badge-bull">♂</span> sire line</span>
-        <span><span class="badge badge-cow">♀</span> dam line</span>
-        <span><span class="badge badge-stub">Stub</span> name known, details missing</span>
-        <span><span class="badge badge-muted">Gen 0</span> no parents recorded</span>
+        <span><span class="badge badge-bull">♂</span>{{tr "sire line"}}</span>
+        <span><span class="badge badge-cow">♀</span>{{tr "dam line"}}</span>
+        <span><span class="badge badge-stub">{{tr "Stub"}}</span>{{tr "name known, details missing"}}</span>
+        <span><span class="badge badge-muted">{{tr "Gen 0"}}</span>{{tr "no parents recorded"}}</span>
       </div>
-      <LinkTo @route="animals.animal.edit" @model={{animal.id}} class="btn btn-ghost btn-sm">+ Add / link parents</LinkTo>
+      <LinkTo @route="animals.animal.edit" @model={{animal.id}} class="btn btn-ghost btn-sm">{{tr "+ Add / link parents"}}</LinkTo>
     </div>
 
     <div class="tree-scroll" style="padding:20px 18px">
       <div class="tree">
         <LinkTo @route="animals.animal" @model={{animal.id}} class="pnode is-focus">
           <span class="pn-sex">{{if (eq animal.sex "BULL") "♂ FOCUS BULL" "♀ FOCUS COW"}}</span>
-          <span class="pn-name">{{animal.name_en}}</span>
-          <span class="pn-ta">{{animal.name_ta}}</span>
-          <span class="pn-meta"><ColorDot @color={{animal.current_color}} /> {{animal.labels.current_color.en}}</span>
+          <span class="pn-name">{{nm animal}}</span>
+          <span class="pn-ta">{{nm2 animal}}</span>
+          <span class="pn-meta"><ColorDot @color={{animal.current_color}} /> {{lbl animal.labels.current_color}}</span>
           <span class="pn-meta">Gen {{animal.documented_generations}}</span>
         </LinkTo>
 
@@ -45,9 +45,8 @@
           </div>
         {{else}}
           <div class="connector"></div>
-          <div class="pnode is-empty" style="max-width:260px">
-            Generation 0 — no parents documented.<br>
-            <span class="tiny">Add a sire or dam to start growing this tree.</span>
+          <div class="pnode is-empty" style="max-width:260px">{{tr "Generation 0 — no parents documented."}}<br>
+            <span class="tiny">{{tr "Add a sire or dam to start growing this tree."}}</span>
           </div>
         {{/if}}
       </div>
@@ -57,11 +56,11 @@
   <div class="sidebar-layout">
     <div class="stack">
       <div class="card">
-        <h3 style="margin-top:0">Ancestors by generation</h3>
+        <h3 style="margin-top:0">{{tr "Ancestors by generation"}}</h3>
         {{#if ped.by_generation.length}}
           <div class="table-wrap" style="border:0">
             <table>
-              <thead><tr><th>Gen</th><th>Ancestors</th><th class="right">Recorded</th></tr></thead>
+              <thead><tr><th>{{tr "Gen"}}</th><th>{{tr "Ancestors"}}</th><th class="right">{{tr "Recorded"}}</th></tr></thead>
               <tbody>
                 {{#each ped.by_generation as |g|}}
                   <tr>
@@ -69,8 +68,8 @@
                     <td>
                       {{#each g.animals as |a|}}
                         <LinkTo @route="animals.animal" @model={{a.id}} class="chip" style="padding:2px 9px;font-size:0.8rem;margin:2px 3px 2px 0">
-                          {{a.name_en}} <span class="ta muted">{{a.name_ta}}</span>
-                          {{#if a.is_stub}}<span class="badge badge-stub" style="padding:0 5px;font-size:0.6rem">stub</span>{{/if}}
+                          {{nm a}} <span class="ta muted">{{nm2 a}}</span>
+                          {{#if a.is_stub}}<span class="badge badge-stub" style="padding:0 5px;font-size:0.6rem">{{tr "stub"}}</span>{{/if}}
                         </LinkTo>
                       {{/each}}
                     </td>
@@ -81,14 +80,14 @@
             </table>
           </div>
         {{else}}
-          <p class="small muted" style="margin:0">No ancestors are recorded yet. This animal is at Generation 0.</p>
+          <p class="small muted" style="margin:0">{{tr "No ancestors are recorded yet. This animal is at Generation 0."}}</p>
         {{/if}}
       </div>
 
       <div class="card">
         <div class="between">
           <h3 style="margin:0">Progeny ({{ped.offspring_count}})</h3>
-          <LinkTo @route="animals.new" class="small">Register a calf →</LinkTo>
+          <LinkTo @route="animals.new" class="small">{{tr "Register a calf →"}}</LinkTo>
         </div>
         {{#if ped.offspring.length}}
           <div class="stack-sm" style="margin-top:12px">
@@ -96,43 +95,36 @@
               <div class="row" style="justify-content:space-between;gap:10px;padding-bottom:8px;border-bottom:1px dashed var(--line)">
                 <LinkTo @route="animals.animal" @model={{child.id}} class="row" style="gap:8px;color:inherit">
                   <span class="badge {{if (eq child.sex "BULL") "badge-bull" "badge-cow"}}">{{child.sex}}</span>
-                  <span><strong>{{child.name_en}}</strong> <span class="ta muted">{{child.name_ta}}</span></span>
+                  <span><strong>{{nm child}}</strong> <span class="alt-name">{{nm2 child}}</span></span>
                 </LinkTo>
                 <span class="tiny muted">
                   depth {{child.depth}} · via {{if (eq child.via "SIRE") "sire" "dam"}}
-                  {{#if child.other_parent}} · other parent {{child.other_parent.name_en}}{{/if}}
+                  {{#if child.other_parent}} · other parent {{nm child.other_parent}}{{/if}}
                 </span>
               </div>
             {{/each}}
           </div>
         {{else}}
-          <p class="small muted" style="margin:10px 0 0">No progeny registered yet.</p>
+          <p class="small muted" style="margin:10px 0 0">{{tr "No progeny registered yet."}}</p>
         {{/if}}
       </div>
     </div>
 
     <aside class="stack">
       <div class="card">
-        <div class="eyebrow">Grow the tree</div>
-        <p class="small">
-          Pedigree depth is unlimited. Any animal you link becomes part of this tree, and every
-          ancestor's own ancestors are followed automatically.
-        </p>
+        <div class="eyebrow">{{tr "Grow the tree"}}</div>
+        <p class="small">{{tr "Pedigree depth is unlimited. Any animal you link becomes part of this tree, and every ancestor's own ancestors are followed automatically."}}</p>
         <div class="stack-sm">
-          <LinkTo @route="animals.animal.edit" @model={{animal.id}} class="btn btn-primary btn-sm btn-block">Link sire / dam</LinkTo>
+          <LinkTo @route="animals.animal.edit" @model={{animal.id}} class="btn btn-primary btn-sm btn-block">{{tr "Link sire / dam"}}</LinkTo>
           <LinkTo @route="mating-planner" @query={{hash sire=(if (eq animal.sex "BULL") animal.id "") dam=(if (eq animal.sex "COW") animal.id "")}} class="btn btn-ghost btn-sm btn-block">
-            Check a mating with {{animal.name_en}}
+            Check a mating with {{nm animal}}
           </LinkTo>
         </div>
       </div>
 
       <div class="card">
-        <div class="eyebrow">Why it matters</div>
-        <p class="small muted" style="margin:0">
-          Kangeyam breeders have kept lineage knowledge in memory for generations. Writing it down —
-          even as stub ancestors with only a name and village — protects the bloodline from inbreeding
-          and preserves its Rekla and Jallikattu history.
-        </p>
+        <div class="eyebrow">{{tr "Why it matters"}}</div>
+        <p class="small muted" style="margin:0">{{tr "Kangeyam breeders have kept lineage knowledge in memory for generations. Writing it down — even as stub ancestors with only a name and village — protects the bloodline from inbreeding and preserves its Rekla and Jallikattu history."}}</p>
       </div>
     </aside>
   </div>

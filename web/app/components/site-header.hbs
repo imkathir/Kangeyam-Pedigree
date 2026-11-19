@@ -11,35 +11,36 @@
       </span>
       <span class="brand-text">
         <span class="brand-ta">காங்கேயம் பட்டியல்</span>
-        <span class="brand-en">Kangeyam Registry</span>
+        <span class="brand-en">{{tr "Kangeyam Registry"}}</span>
       </span>
     </LinkTo>
 
-    <nav class="nav" aria-label="Main">
-      <LinkTo @route="dashboard" class={{if this.isDashboard "active"}}>Dashboard</LinkTo>
-      <LinkTo @route="animals" class={{if this.isAnimals "active"}}>Cattle</LinkTo>
-      <LinkTo @route="owners" class={{if this.isOwners "active"}}>Owners</LinkTo>
-      <LinkTo @route="achievements" class={{if this.isAchievements "active"}}>Hall of Fame</LinkTo>
-      <LinkTo @route="mating-planner" class={{if this.isPlanner "active"}}>Mating Planner</LinkTo>
+    <nav class="nav" aria-label={{tr "Main"}}>
+      <LinkTo @route="dashboard" class={{if this.isDashboard "active"}}>{{tr "Dashboard"}}</LinkTo>
+      <LinkTo @route="animals" class={{if this.isAnimals "active"}}>{{tr "Cattle"}}</LinkTo>
+      <LinkTo @route="owners" class={{if this.isOwners "active"}}>{{tr "Owners"}}</LinkTo>
+      <LinkTo @route="achievements" class={{if this.isAchievements "active"}}>{{tr "Hall of Fame"}}</LinkTo>
+      <LinkTo @route="mating-planner" class={{if this.isPlanner "active"}}>{{tr "Mating Planner"}}</LinkTo>
     </nav>
 
     <div class="header-actions">
+      <LanguageToggle />
       <WriteKey />
-      <LinkTo @route="animals.new" class="btn btn-primary btn-sm" aria-label="Register a new animal">+<span class="reg-label"> Register</span></LinkTo>
-      <button class="nav-toggle" type="button" {{on "click" this.toggle}} aria-label="Menu" aria-expanded={{this.open}}>
-        {{if this.open "✕" "☰"}}
+      <LinkTo @route="animals.new" class="btn btn-primary btn-sm" aria-label={{tr "Register a new animal"}}>+<span class="reg-label">{{tr "Register"}}</span></LinkTo>
+      <button class="nav-toggle" type="button" {{on "click" this.toggle}} aria-label={{tr "Menu"}} aria-expanded={{this.open}}>
+        {{if this.open (tr "✕") (tr "☰")}}
       </button>
     </div>
   </div>
 
   {{#if this.open}}
     <div class="shell mobile-nav">
-      <LinkTo @route="dashboard" class={{if this.isDashboard "active"}} {{on "click" this.close}}>Dashboard</LinkTo>
-      <LinkTo @route="animals" class={{if this.isAnimals "active"}} {{on "click" this.close}}>Cattle registry</LinkTo>
-      <LinkTo @route="owners" class={{if this.isOwners "active"}} {{on "click" this.close}}>Owners & breeders</LinkTo>
-      <LinkTo @route="achievements" class={{if this.isAchievements "active"}} {{on "click" this.close}}>Hall of fame</LinkTo>
-      <LinkTo @route="mating-planner" class={{if this.isPlanner "active"}} {{on "click" this.close}}>Mating planner</LinkTo>
-      <LinkTo @route="animals.new" class="active" {{on "click" this.close}}>Register a new animal</LinkTo>
+      <LinkTo @route="dashboard" class={{if this.isDashboard "active"}} {{on "click" this.close}}>{{tr "Dashboard"}}</LinkTo>
+      <LinkTo @route="animals" class={{if this.isAnimals "active"}} {{on "click" this.close}}>{{tr "Cattle registry"}}</LinkTo>
+      <LinkTo @route="owners" class={{if this.isOwners "active"}} {{on "click" this.close}}>{{tr "Owners & breeders"}}</LinkTo>
+      <LinkTo @route="achievements" class={{if this.isAchievements "active"}} {{on "click" this.close}}>{{tr "Hall of fame"}}</LinkTo>
+      <LinkTo @route="mating-planner" class={{if this.isPlanner "active"}} {{on "click" this.close}}>{{tr "Mating planner"}}</LinkTo>
+      <LinkTo @route="animals.new" class="active" {{on "click" this.close}}>{{tr "Register a new animal"}}</LinkTo>
     </div>
   {{/if}}
 </header>

@@ -1,11 +1,11 @@
 <div class="stack-lg" style="padding:40px 0">
   <div class="empty">
     <div class="big">🐄</div>
-    <h2 style="color:var(--ink)">This page wandered off the pasture</h2>
-    <p class="muted">We could not find <span class="mono">{{this.model.path}}</span> in the registry.</p>
+    <h2 style="color:var(--ink)">{{tr "This page wandered off the pasture"}}</h2>
+    <p class="muted">{{tr "We could not find"}}<span class="mono">{{this.model.path}}</span>{{tr "in the registry."}}</p>
     <div class="row-wrap" style="justify-content:center">
-      <LinkTo @route="animals" class="btn btn-primary">Browse cattle</LinkTo>
-      <LinkTo @route="dashboard" class="btn btn-ghost">Dashboard</LinkTo>
+      <LinkTo @route="animals" class="btn btn-primary">{{tr "Browse cattle"}}</LinkTo>
+      <LinkTo @route="dashboard" class="btn btn-ghost">{{tr "Dashboard"}}</LinkTo>
     </div>
   </div>
 </div>

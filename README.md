@@ -34,6 +34,9 @@ kangeyam/
 └── web/                    Ember.js 5.12 (Octane) application
     ├── app/router.js       Bookmarkable routes for every entity, incl. the unlinked /admin
     ├── app/services/api.js Native-fetch API service layer
+    ├── app/services/i18n.js Locale state, {{tr}} / {{lbl}} / {{nm}} lookup, <html lang>
+    ├── app/utils/dictionary.js English → Tamil dictionary + server-string patterns
+    ├── scripts/i18n-check.js `npm run i18n:check` — lists untranslated strings
     ├── app/components/     Glimmer components (recursive pedigree tree, animal search…)
     ├── app/templates/      One template per route
     └── app/styles/app.css  Bespoke mobile-first design system (no CSS framework)
@@ -163,7 +166,8 @@ a plain-language relationship (“First cousins”, “Uncle / aunt × niece / n
 warnings for direct parent–offspring pairings or wrong-sex parents.
 
 ### Bilingual by default
-`name_ta`, `name_en`, owner names, colour classes and all UI labels exist in both scripts.
+`name_ta`, `name_en`, owner names, colour classes and all UI labels exist in both scripts — and the
+whole interface can be switched between Tamil and English (§6).
 Search (`?q=`) matches Tamil and English names, tags, villages, distinctive markings and owner
 names in a single query. A self-hosted Noto Sans Tamil webfont (`web/public/fonts`) guarantees
 Tamil renders even on devices without a Tamil system font.
@@ -282,41 +286,6 @@ of the same middleware (the `keyMatches()` seam) before letting untrusted editor
 
 ---
 
-## 5. REST API — `/api/v1`
-
-| Method | Path | Notes |
-| --- | --- | --- |
-| GET | `/meta` | Enumerations with Tamil + English labels |
-| GET | `/stats` | Dashboard counters, colour & category breakdowns |
-| GET | `/animals` | `?q=&sex=&color=&village=&district=&min_generations=&has_achievements=&has_media=&sort=&page=&per_page=` |
-| POST | `/animals` | Public submission → `202` + `PENDING`; with the admin key → `201` + `APPROVED`. Accepts `owner_id` or inline `owner {}` and `media []` |
-| GET | `/animals/:id` | Full profile + media, ownerships, achievements, progeny, computed generation |
-| PATCH | `/animals/:id` | Partial update incl. parent links (cycle-checked) |
-| DELETE | `/animals/:id` | Hard delete, or **archive** when the animal is a recorded ancestor |
-| GET | `/animals/:id/pedigree?depth=n` | Recursive `sire` / `dam` tree, `by_generation`, `offspring` |
-| GET | `/pedigree/compatibility?sire_id=&dam_id=` | Shared ancestors, Wright's F, risk, warnings |
-| GET/POST | `/animals/:id/media` | Photos & videos, `life_stage`, `is_primary` |
-| PATCH/DELETE | `/animals/:id/media/:mediaId` | Set primary, edit caption / stage, remove |
-| GET/POST | `/animals/:id/ownerships` | Ordered timeline; can inline-create an owner |
-| PATCH/DELETE | `/animals/:id/ownerships/:ownershipId` | Reorder, re-date, remove |
-| GET/POST | `/owners` | Directory search `?q=&district=&village=`; `POST` is a public submission (202 + `PENDING`) |
-| GET/PATCH | `/owners/:id` | Profile + currently / previously owned cattle |
-| GET | `/achievements` | Global feed + leaderboard `?category=&q=&year=&sex=` |
-| GET/POST | `/animals/:id/achievements` | Includes `partner_animal_id` for paired Rekla bulls |
-| PATCH/DELETE | `/animals/:id/achievements/:achievementId` | Edit / remove |
-| GET | `/breeding-events` | Mating → expected calving → calf log |
-| GET | `/animals/:id/qr.svg` | QR badge used by the printable certificate |
-| GET | `/admin/queue` | **Admin.** Pending animals + breeders, submitter contacts, counters |
-| POST | `/admin/animals/:id/review` | **Admin.** `{"action":"approve"\|"reject"\|"pending","note":"…"}` |
-| POST | `/admin/owners/:id/review` | **Admin.** Same body; owners linked to an approved animal are published with it |
-
-Errors use standard codes with a JSON body:
-
-```json
-{ "errors": [{ "status": 422, "title": "Validation failed",
-               "detail": ["dam_id: Semmai is a BULL, expected a COW"] }] }
-```
-
 ### Write access
 
 ![Write key gate](docs/screenshots/11-write-key-gate.png)
@@ -353,7 +322,42 @@ front of it before letting untrusted editors in.
 
 ---
 
-## 6. Ember routes
+## 6. Language — தமிழ் / English
+
+The UI ships in both languages; nothing is machine-translated at runtime.
+
+| Where | What |
+| --- | --- |
+| header pill `த | EN` | switches the whole app instantly, no reload |
+| `localStorage.kangeyam.locale` | remembers the choice (`ta` / `en`) |
+| first visit | follows `navigator.language` — a `ta-*` browser starts in Tamil, everything else in English |
+| `<html lang>` | kept in sync, so screen readers, hyphenation and the Tamil webfont all agree |
+
+**How strings are stored.** English source text is the key, Tamil lives in
+`web/app/utils/dictionary.js` (~630 entries). A missing entry falls back to English instead of
+leaking a key into the page, and `npm run i18n:check` (in `web/`) reports every string used without
+a translation — it exits non-zero with `--ci`, so a gap fails the build rather than the farmer.
+
+Templates use three helpers:
+
+```hbs
+{{tr "Register an animal"}}                    {{! UI copy }}
+{{tr "{{n}} generations documented" n=3}}      {{! copy with numbers baked in }}
+{{lbl animal.labels.current_color}}            {{! server label pairs {ta, en} }}
+{{nm animal}} {{nm2 animal}}                   {{! primary name + the other script, muted }}
+```
+
+Sentences the API composes — age labels (`4 yrs (year only)`), kinship (`First cousins`), verdicts,
+`X is an ancestor of Y` — are matched by the small `patterns` table next to the dictionary, so the
+server can keep returning one canonical English structure.
+
+**What is *not* translated:** a breeder's own words (notes, captions, achievement titles) and
+free-text village names are stored once and shown exactly as entered; the common Kongu Nadu
+villages, districts and coat/sex/dentition vocabularies are mapped. Bilingual record names use
+`name_ta` in Tamil mode and `name_en` in English mode, with the other script kept as the secondary
+line, so a Tamil reader never loses the Latin spelling they can type into search.
+
+## 7. Ember routes
 
 ```
 /                                  dashboard
@@ -376,7 +380,7 @@ front of it before letting untrusted editors in.
 typing the URL. Submitting `/animals/new` or `/owners/new` without the key shows the
 "waiting for review" confirmation instead of redirecting to the (still hidden) profile.
 
-## 7. Seed data (optional)
+## 8. Seed data (optional)
 
 The shipped database is **empty**. `npm run db:reset` loads the demo herd that the screenshots
 were taken with: 29 animals across six generations, 8 breeders/farms (Thambi Farms, Vellakoil
@@ -385,7 +389,7 @@ Jallikattu bulls, Best Kangeyam Dam, A2 lactation records, progeny milestones) a
 ancestors — enough to exercise every screen, including a deliberately line-bred branch for the
 mating planner. Every seeded row is written as `APPROVED`, i.e. published.
 
-## 8. Design notes
+## 9. Design notes
 
 Warm paper, terracotta and ochre; serif display type; large touch targets and 3-step forms for
 rural mobile use; no CSS framework, no external CDN (fonts, icons and photographs are all

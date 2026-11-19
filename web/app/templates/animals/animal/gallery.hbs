@@ -1,14 +1,12 @@
 <div class="stack">
   <div class="between">
     <div>
-      <div class="eyebrow">Photo &amp; video timeline</div>
-      <h2 style="margin:0">Gallery of {{this.animal.name_en}}</h2>
-      <p class="small muted" style="margin:4px 0 0">
-        From the red/fawn calf coat to the adult mayilai or sevalai — keep every life stage on record.
-      </p>
+      <div class="eyebrow">{{tr "Photo &amp; video timeline"}}</div>
+      <h2 style="margin:0">Gallery of {{nm this.animal}}</h2>
+      <p class="small muted" style="margin:4px 0 0">{{tr "From the red/fawn calf coat to the adult mayilai or sevalai — keep every life stage on record."}}</p>
     </div>
     <button type="button" class="btn btn-primary" {{on "click" this.toggleForm}}>
-      {{if this.showForm "Close" "+ Add photo"}}
+      {{if this.showForm (tr "Close") (tr "+ Add photo")}}
     </button>
   </div>
 
@@ -17,46 +15,46 @@
       <FormErrors @errors={{this.errors}} />
       <div class="form-grid">
         <div class="field span-2">
-          <label for="url">Image / video URL</label>
-          <input id="url" type="text" value={{this.media_url}} placeholder="https://… or pick a sample below" {{on "input" (fn this.set "media_url")}}>
-          <div class="hint">You can also upload a file from this device (max 3.5 MB) — it is stored inline with the record.</div>
+          <label for="url">{{tr "Image / video URL"}}</label>
+          <input id="url" type="text" value={{this.media_url}} placeholder={{tr "https://… or pick a sample below"}} {{on "input" (fn this.set "media_url")}}>
+          <div class="hint">{{tr "You can also upload a file from this device (max 3.5 MB) — it is stored inline with the record."}}</div>
         </div>
         <div class="field">
-          <label for="file">Upload from device</label>
+          <label for="file">{{tr "Upload from device"}}</label>
           <input id="file" type="file" accept="image/*,video/*" {{on "change" this.uploadFile}}>
         </div>
         <div class="field">
-          <label for="stage">Life stage</label>
+          <label for="stage">{{tr "Life stage"}}</label>
           <select id="stage" {{on "change" (fn this.set "life_stage")}}>
             {{#each this.stages as |s|}}
-              <option value={{s.value}} selected={{eq this.life_stage s.value}}>{{s.en}} · {{s.ta}}</option>
+              <option value={{s.value}} selected={{eq this.life_stage s.value}}>{{lbl s}}</option>
             {{/each}}
           </select>
         </div>
         <div class="field span-2">
-          <label for="caption">Caption</label>
-          <input id="caption" type="text" value={{this.caption}} placeholder="e.g. At four-tooth, Kangeyam pasture" {{on "input" (fn this.set "caption")}}>
+          <label for="caption">{{tr "Caption"}}</label>
+          <input id="caption" type="text" value={{this.caption}} placeholder={{tr "e.g. At four-tooth, Kangeyam pasture"}} {{on "input" (fn this.set "caption")}}>
         </div>
         <label class="checkline span-2">
           <input type="checkbox" checked={{this.is_primary}} {{on "change" (fn this.set "is_primary")}}>
-          <span>Use as the primary profile photo</span>
+          <span>{{tr "Use as the primary profile photo"}}</span>
         </label>
       </div>
 
       <div class="field">
-        <span class="label">Or pick a sample image</span>
+        <span class="label">{{tr "Or pick a sample image"}}</span>
         <div class="row-wrap">
           {{#each this.samples as |s|}}
             <button type="button" style="border:2px solid {{if (eq this.media_url s) "var(--terra)" "transparent"}};padding:0;border-radius:8px;background:none;cursor:pointer" {{on "click" (fn this.useSample s)}}>
-              <img src={{s}} alt="Sample" style="width:76px;height:56px;object-fit:cover;border-radius:6px">
+              <img src={{s}} alt={{tr "Sample"}} style="width:76px;height:56px;object-fit:cover;border-radius:6px">
             </button>
           {{/each}}
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" disabled={{this.saving}}>{{if this.saving "Saving…" "Add to gallery"}}</button>
-        <button type="button" class="btn btn-ghost" {{on "click" this.toggleForm}}>Cancel</button>
+        <button type="submit" class="btn btn-primary" disabled={{this.saving}}>{{if this.saving (tr "Saving…") (tr "Add to gallery")}}</button>
+        <button type="button" class="btn btn-ghost" {{on "click" this.toggleForm}}>{{tr "Cancel"}}</button>
       </div>
     </form>
   {{/if}}
@@ -65,7 +63,7 @@
     <button type="button" class="chip {{if (eq this.filter "") "active"}}" {{on "click" (fn this.setFilter "")}}>All ({{this.counts.ALL}})</button>
     {{#each this.stages as |s|}}
       {{#if (get this.counts s.value)}}
-        <button type="button" class="chip {{if (eq this.filter s.value) "active"}}" {{on "click" (fn this.setFilter s.value)}}>{{s.en}} ({{get this.counts s.value}})</button>
+        <button type="button" class="chip {{if (eq this.filter s.value) "active"}}" {{on "click" (fn this.setFilter s.value)}}>{{lbl s}} ({{get this.counts s.value}})</button>
       {{/if}}
     {{/each}}
   </div>
@@ -77,16 +75,16 @@
           {{#if (eq m.media_type "VIDEO")}}
             <video src={{m.media_url}} controls style="width:100%;aspect-ratio:4/3;object-fit:cover"></video>
           {{else}}
-            <img src={{m.media_url}} alt="{{this.animal.name_en}} — {{or m.caption 'gallery photo'}}" loading="lazy">
+            <img src={{m.media_url}} alt="{{nm this.animal}} — {{or m.caption 'gallery photo'}}" loading="lazy">
           {{/if}}
           {{#if m.is_primary}}
-            <span class="badge badge-terra primary-flag">★ Primary</span>
+            <span class="badge badge-terra primary-flag">{{tr "★ Primary"}}</span>
           {{/if}}
           <div class="tile-actions">
             {{#unless m.is_primary}}
-              <button type="button" class="icon-btn" title="Set as primary" {{on "click" (fn this.makePrimary m)}}>★</button>
+              <button type="button" class="icon-btn" title={{tr "Set as primary"}} {{on "click" (fn this.makePrimary m)}}>★</button>
             {{/unless}}
-            <button type="button" class="icon-btn" title="Remove" {{on "click" (fn this.remove m)}}>✕</button>
+            <button type="button" class="icon-btn" title={{tr "Remove"}} {{on "click" (fn this.remove m)}}>✕</button>
           </div>
           <figcaption class="tile-cap">
             <div>{{or m.caption "—"}}</div>
@@ -96,8 +94,8 @@
       {{/each}}
     </div>
   {{else}}
-    <EmptyState @icon="📷" @title="No photos in this stage" @text="Add the first photo of {{this.animal.name_en}}.">
-      <button type="button" class="btn btn-primary" {{on "click" this.toggleForm}}>Add a photo</button>
+    <EmptyState @icon="📷" @title={{tr "No photos in this stage"}} @text="Add the first photo of {{nm this.animal}}.">
+      <button type="button" class="btn btn-primary" {{on "click" this.toggleForm}}>{{tr "Add a photo"}}</button>
     </EmptyState>
   {{/if}}
 </div>

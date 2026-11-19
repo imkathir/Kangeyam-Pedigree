@@ -1,14 +1,12 @@
 <div class="stack">
   <div class="between">
     <div>
-      <div class="eyebrow">Breeder &amp; owner history</div>
-      <h2 style="margin:0">Who has kept {{this.animal.name_en}}</h2>
-      <p class="small muted" style="margin:4px 0 0">
-        Zero to many owners — the breeder, then each previous owner in order, then the current one.
-      </p>
+      <div class="eyebrow">{{tr "Breeder &amp; owner history"}}</div>
+      <h2 style="margin:0">Who has kept {{nm this.animal}}</h2>
+      <p class="small muted" style="margin:4px 0 0">{{tr "Zero to many owners — the breeder, then each previous owner in order, then the current one."}}</p>
     </div>
     <button type="button" class="btn btn-primary" {{on "click" this.toggleForm}}>
-      {{if this.showForm "Close" "+ Add owner"}}
+      {{if this.showForm (tr "Close") (tr "+ Add owner")}}
     </button>
   </div>
 
@@ -17,82 +15,82 @@
       <FormErrors @errors={{this.errors}} />
       <div class="form-grid">
         <div class="field">
-          <label for="role">Role</label>
+          <label for="role">{{tr "Role"}}</label>
           <select id="role" {{on "change" (fn this.set "role")}}>
             {{#each this.roles as |r|}}
-              <option value={{r.value}} selected={{eq this.role r.value}}>{{r.en}} · {{r.ta}}</option>
+              <option value={{r.value}} selected={{eq this.role r.value}}>{{lbl r}}</option>
             {{/each}}
           </select>
         </div>
         <div class="field">
-          <span class="label">Owner source</span>
+          <span class="label">{{tr "Owner source"}}</span>
           <div class="segmented">
-            <button type="button" class={{if (eq this.ownerMode "existing") "active"}} {{on "click" (fn this.set "ownerMode" "existing")}}>Existing</button>
-            <button type="button" class={{if (eq this.ownerMode "new") "active"}} {{on "click" (fn this.set "ownerMode" "new")}}>New owner</button>
+            <button type="button" class={{if (eq this.ownerMode "existing") "active"}} {{on "click" (fn this.set "ownerMode" "existing")}}>{{tr "Existing"}}</button>
+            <button type="button" class={{if (eq this.ownerMode "new") "active"}} {{on "click" (fn this.set "ownerMode" "new")}}>{{tr "New owner"}}</button>
           </div>
         </div>
 
         {{#if (eq this.ownerMode "existing")}}
           <div class="field span-2">
-            <label for="owner">Breeder / farm</label>
+            <label for="owner">{{tr "Breeder / farm"}}</label>
             <select id="owner" {{on "change" (fn this.set "owner_id")}}>
-              <option value="">— Select —</option>
+              <option value="">{{tr "— Select —"}}</option>
               {{#each @model.owners as |o|}}
-                <option value={{o.id}} selected={{eq this.owner_id (concat "" o.id)}}>{{o.name_en}}{{#if o.farm_name}} · {{o.farm_name}}{{/if}}{{#if o.village}} ({{o.village}}){{/if}}</option>
+                <option value={{o.id}} selected={{eq this.owner_id (concat "" o.id)}}>{{nm o}}{{#if o.farm_name}} · {{o.farm_name}}{{/if}}{{#if o.village}} ({{o.village}}){{/if}}</option>
               {{/each}}
             </select>
           </div>
         {{else}}
           <div class="field">
-            <label>Name (English) <span class="req">*</span></label>
-            <input type="text" value={{this.newOwner.name_en}} {{on "input" (fn this.setNewOwner "name_en")}}>
+            <label>{{tr "Name (English)"}}<span class="req">*</span></label>
+            <input type="text" value={{nm this.newOwner}} {{on "input" (fn this.setNewOwner "name_en")}}>
           </div>
           <div class="field">
-            <label>Name (Tamil)</label>
-            <input type="text" class="ta" value={{this.newOwner.name_ta}} {{on "input" (fn this.setNewOwner "name_ta")}}>
+            <label>{{tr "Name (Tamil)"}}</label>
+            <input type="text" class="alt-name" value={{nm2 this.newOwner}} {{on "input" (fn this.setNewOwner "name_ta")}}>
           </div>
           <div class="field">
-            <label>Farm / family title</label>
+            <label>{{tr "Farm / family title"}}</label>
             <input type="text" value={{this.newOwner.farm_name}} {{on "input" (fn this.setNewOwner "farm_name")}}>
           </div>
           <div class="field">
-            <label>Phone / WhatsApp</label>
+            <label>{{tr "Phone / WhatsApp"}}</label>
             <input type="tel" value={{this.newOwner.phone}} {{on "input" (fn this.setNewOwner "phone")}}>
           </div>
           <div class="field">
-            <label>Village</label>
+            <label>{{tr "Village"}}</label>
             <input type="text" value={{this.newOwner.village}} {{on "input" (fn this.setNewOwner "village")}}>
           </div>
           <div class="field">
-            <label>District</label>
+            <label>{{tr "District"}}</label>
             <input type="text" value={{this.newOwner.district}} {{on "input" (fn this.setNewOwner "district")}}>
           </div>
           <label class="checkline span-2">
             <input type="checkbox" checked={{this.newOwner.is_contact_public}} {{on "change" (fn this.setNewOwner "is_contact_public")}}>
-            <span>Publish this owner's phone number</span>
+            <span>{{tr "Publish this owner's phone number"}}</span>
           </label>
         {{/if}}
 
         <div class="field">
-          <label for="from">From (approximate is fine)</label>
-          <input id="from" type="text" value={{this.from_date}} placeholder="2019-04 or 2019" {{on "input" (fn this.set "from_date")}}>
+          <label for="from">{{tr "From (approximate is fine)"}}</label>
+          <input id="from" type="text" value={{this.from_date}} placeholder={{tr "2019-04 or 2019"}} {{on "input" (fn this.set "from_date")}}>
         </div>
         <div class="field">
-          <label for="to">To</label>
-          <input id="to" type="text" value={{this.to_date}} placeholder="leave empty for the current owner" {{on "input" (fn this.set "to_date")}}>
+          <label for="to">{{tr "To"}}</label>
+          <input id="to" type="text" value={{this.to_date}} placeholder={{tr "leave empty for the current owner"}} {{on "input" (fn this.set "to_date")}}>
         </div>
         <div class="field">
-          <label for="seq">Sequence order</label>
-          <input id="seq" type="number" min="1" value={{this.sequence_order}} placeholder="auto" {{on "input" (fn this.set "sequence_order")}}>
+          <label for="seq">{{tr "Sequence order"}}</label>
+          <input id="seq" type="number" min="1" value={{this.sequence_order}} placeholder={{tr "auto"}} {{on "input" (fn this.set "sequence_order")}}>
         </div>
         <div class="field">
-          <label for="place">Place note</label>
-          <input id="place" type="text" value={{this.place_note}} placeholder="Village where the animal was kept" {{on "input" (fn this.set "place_note")}}>
+          <label for="place">{{tr "Place note"}}</label>
+          <input id="place" type="text" value={{this.place_note}} placeholder={{tr "Village where the animal was kept"}} {{on "input" (fn this.set "place_note")}}>
         </div>
       </div>
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" disabled={{this.saving}}>{{if this.saving "Saving…" "Save ownership"}}</button>
-        <button type="button" class="btn btn-ghost" {{on "click" this.toggleForm}}>Cancel</button>
+        <button type="submit" class="btn btn-primary" disabled={{this.saving}}>{{if this.saving (tr "Saving…") (tr "Save ownership")}}</button>
+        <button type="button" class="btn btn-ghost" {{on "click" this.toggleForm}}>{{tr "Cancel"}}</button>
       </div>
     </form>
   {{/if}}
@@ -110,33 +108,33 @@
                 </div>
                 {{#if row.owner}}
                   <div style="font-family:var(--serif);font-size:1.1rem">
-                    <LinkTo @route="owners.owner" @model={{row.owner.id}}>{{row.owner.name_en}}</LinkTo>
-                    {{#if row.owner.name_ta}}<span class="ta muted small"> · {{row.owner.name_ta}}</span>{{/if}}
+                    <LinkTo @route="owners.owner" @model={{row.owner.id}}>{{nm row.owner}}</LinkTo>
+                    {{#if row.owner.name_ta}}<span class="ta muted small"> · {{nm2 row.owner}}</span>{{/if}}
                   </div>
                   <div class="small muted">
                     {{#if row.owner.farm_name}}{{row.owner.farm_name}} · {{/if}}
-                    {{#if row.owner.village}}{{row.owner.village}}{{/if}}{{#if row.owner.district}}, {{row.owner.district}}{{/if}}
+                    {{#if row.owner.village}}{{tr row.owner.village}}{{/if}}{{#if row.owner.district}}, {{tr row.owner.district}}{{/if}}
                     {{#if row.place_note}} · kept at {{row.place_note}}{{/if}}
                   </div>
                   <div class="small">
                     {{#if row.owner.phone}}
                       <a href="tel:{{row.owner.phone}}">{{row.owner.phone}}</a>
                     {{else if row.owner.is_contact_public}}
-                      <span class="muted">No phone on file</span>
+                      <span class="muted">{{tr "No phone on file"}}</span>
                     {{else}}
-                      <span class="muted tiny">Phone kept private</span>
+                      <span class="muted tiny">{{tr "Phone kept private"}}</span>
                     {{/if}}
                   </div>
                 {{else}}
-                  <div class="muted">Owner record missing</div>
+                  <div class="muted">{{tr "Owner record missing"}}</div>
                 {{/if}}
               </div>
               <div class="row no-print" style="gap:4px">
-                <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.edit row)}}>Edit</button>
+                <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.edit row)}}>{{tr "Edit"}}</button>
                 {{#if (eq this.confirmId row.id)}}
-                  <button type="button" class="btn btn-danger btn-sm" {{on "click" (fn this.remove row.id)}}>Confirm</button>
+                  <button type="button" class="btn btn-danger btn-sm" {{on "click" (fn this.remove row.id)}}>{{tr "Confirm"}}</button>
                 {{else}}
-                  <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.askDelete row.id)}}>Remove</button>
+                  <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.askDelete row.id)}}>{{tr "Remove"}}</button>
                 {{/if}}
               </div>
             </div>
@@ -145,33 +143,33 @@
               <div class="card card-tight" style="margin-top:10px;background:var(--paper-2)">
                 <div class="form-grid">
                   <div class="field">
-                    <label>Role</label>
+                    <label>{{tr "Role"}}</label>
                     <select {{on "change" (fn this.setDraft "role")}}>
                       {{#each this.roles as |r|}}
-                        <option value={{r.value}} selected={{eq this.draft.role r.value}}>{{r.en}}</option>
+                        <option value={{r.value}} selected={{eq this.draft.role r.value}}>{{lbl r}}</option>
                       {{/each}}
                     </select>
                   </div>
                   <div class="field">
-                    <label>Sequence order</label>
+                    <label>{{tr "Sequence order"}}</label>
                     <input type="number" min="1" value={{this.draft.sequence_order}} {{on "input" (fn this.setDraft "sequence_order")}}>
                   </div>
                   <div class="field">
-                    <label>From</label>
+                    <label>{{tr "From"}}</label>
                     <input type="text" value={{this.draft.from_date}} {{on "input" (fn this.setDraft "from_date")}}>
                   </div>
                   <div class="field">
-                    <label>To</label>
+                    <label>{{tr "To"}}</label>
                     <input type="text" value={{this.draft.to_date}} {{on "input" (fn this.setDraft "to_date")}}>
                   </div>
                   <div class="field span-2">
-                    <label>Place note</label>
+                    <label>{{tr "Place note"}}</label>
                     <input type="text" value={{this.draft.place_note}} {{on "input" (fn this.setDraft "place_note")}}>
                   </div>
                 </div>
                 <div class="row" style="gap:8px">
-                  <button type="button" class="btn btn-primary btn-sm" {{on "click" (fn this.saveEdit row.id)}}>Save</button>
-                  <button type="button" class="btn btn-ghost btn-sm" {{on "click" this.cancelEdit}}>Cancel</button>
+                  <button type="button" class="btn btn-primary btn-sm" {{on "click" (fn this.saveEdit row.id)}}>{{tr "Save"}}</button>
+                  <button type="button" class="btn btn-ghost btn-sm" {{on "click" this.cancelEdit}}>{{tr "Cancel"}}</button>
                 </div>
               </div>
             {{/if}}
@@ -180,8 +178,8 @@
       </ul>
     </div>
   {{else}}
-    <EmptyState @icon="🤝" @title="No ownership recorded" @text="Add the breeder who raised this animal, even if the exact dates are unknown.">
-      <button type="button" class="btn btn-primary" {{on "click" this.toggleForm}}>Record the first owner</button>
+    <EmptyState @icon="🤝" @title={{tr "No ownership recorded"}} @text={{tr "Add the breeder who raised this animal, even if the exact dates are unknown."}}>
+      <button type="button" class="btn btn-primary" {{on "click" this.toggleForm}}>{{tr "Record the first owner"}}</button>
     </EmptyState>
   {{/if}}
 </div>

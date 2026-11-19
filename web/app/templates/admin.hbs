@@ -1,9 +1,6 @@
-<div class="eyebrow">Registry administration · <span class="ta">பதிவேற்ற மேலாண்மை</span></div>
-<h1 style="margin:0 0 6px">Review queue</h1>
-<p class="muted small" style="margin:0 0 18px;max-width:70ch">
-  Nothing here is public yet. Approving publishes the record to the registry and the app;
-  rejecting keeps it hidden. This page is not linked anywhere in the app — bookmark
-  <code>/admin</code>.
+<div class="eyebrow">{{tr "Registry administration ·"}}<span class="alt-name">பதிவேற்ற மேலாண்மை</span></div>
+<h1 style="margin:0 0 6px">{{tr "Review queue"}}</h1>
+<p class="muted small" style="margin:0 0 18px;max-width:70ch">{{tr "Nothing here is public yet. Approving publishes the record to the registry and the app; rejecting keeps it hidden. This page is not linked anywhere in the app — bookmark"}}<code>/admin</code>.
 </p>
 
 {{#if this.error}}
@@ -15,46 +12,43 @@
 
 {{#if this.locked}}
   <div class="card" style="max-width:640px">
-    <div class="eyebrow">Locked</div>
-    <h2 style="margin:4px 0 8px">This browser has no registry key</h2>
-    <p class="small muted" style="margin:0 0 12px">
-      The review queue is admin-only. Paste the registry key with the
-      <strong>🔑 Write key</strong> button in the header, then reload this page.
+    <div class="eyebrow">{{tr "Locked"}}</div>
+    <h2 style="margin:4px 0 8px">{{tr "This browser has no registry key"}}</h2>
+    <p class="small muted" style="margin:0 0 12px">{{tr "The review queue is admin-only. Paste the registry key with the"}}<strong>{{tr "🔑 Write key"}}</strong> button in the header, then reload this page.
       {{#if this.model.error}}<br><em>{{this.model.error}}</em>{{/if}}
     </p>
-    <button class="btn btn-primary btn-sm" type="button" {{on "click" this.reload}}>Reload</button>
+    <button class="btn btn-primary btn-sm" type="button" {{on "click" this.reload}}>{{tr "Reload"}}</button>
   </div>
 {{else}}
   <div class="admin-stats">
-    <div><strong>{{this.counts.pending_animals}}</strong><span>animals waiting</span></div>
-    <div><strong>{{this.counts.pending_owners}}</strong><span>breeders waiting</span></div>
-    <div><strong>{{this.counts.approved_animals}}</strong><span>animals published</span></div>
-    <div><strong>{{this.counts.approved_owners}}</strong><span>breeders published</span></div>
+    <div><strong>{{this.counts.pending_animals}}</strong><span>{{tr "animals waiting"}}</span></div>
+    <div><strong>{{this.counts.pending_owners}}</strong><span>{{tr "breeders waiting"}}</span></div>
+    <div><strong>{{this.counts.approved_animals}}</strong><span>{{tr "animals published"}}</span></div>
+    <div><strong>{{this.counts.approved_owners}}</strong><span>{{tr "breeders published"}}</span></div>
   </div>
 
   {{#if this.empty}}
     <div class="card" style="max-width:640px">
-      <div class="eyebrow">All clear</div>
-      <h2 style="margin:4px 0 8px">Nothing waiting for review</h2>
+      <div class="eyebrow">{{tr "All clear"}}</div>
+      <h2 style="margin:4px 0 8px">{{tr "Nothing waiting for review"}}</h2>
       <p class="small muted" style="margin:0">
-        New submissions from the public forms land here. The registry currently shows
-        {{this.counts.approved_animals}} animals and {{this.counts.approved_owners}} breeders.
+        {{tr "New submissions from the public forms land here. The registry currently shows {{a}} animals and {{o}} breeders." a=this.counts.approved_animals o=this.counts.approved_owners}}
       </p>
     </div>
   {{/if}}
 
   {{#if this.queue.animals.length}}
-    <h2 class="section-title">Animals · {{this.queue.animals.length}}</h2>
+    <h2 class="section-title">{{tr "Animals · {{n}}" n=this.queue.animals.length}}</h2>
     <div class="review-list">
       {{#each this.queue.animals as |a|}}
         <article class="card review-item">
           <div class="review-main">
             <div class="eyebrow">
-              {{a.sex}} · {{a.current_color}}
-              {{#if a.is_stub}}· stub{{/if}}
+              {{tr a.sex}} · {{a.current_color}}
+              {{#if a.is_stub}}· {{tr "stub"}}{{/if}}
               {{#if a.tag_or_reg_no}}· {{a.tag_or_reg_no}}{{/if}}
             </div>
-            <h3 style="margin:2px 0 2px">{{a.name_en}} <span class="ta muted">{{a.name_ta}}</span></h3>
+            <h3 style="margin:2px 0 2px">{{nm a}} <span class="ta muted">{{nm2 a}}</span></h3>
             <p class="small muted" style="margin:0">
               {{#if a.current_village}}{{a.current_village}}{{/if}}
               {{#if a.current_district}}{{#if a.current_village}} · {{/if}}{{a.current_district}}{{/if}}
@@ -64,8 +58,8 @@
             </p>
             {{#if a.notes}}<p class="small" style="margin:6px 0 0">{{a.notes}}</p>{{/if}}
             <p class="small muted" style="margin:6px 0 0">
-              Submitted
-              {{#if a.submitter_name}}by <strong>{{a.submitter_name}}</strong>{{/if}}
+              {{tr "Submitted"}}
+              {{#if a.submitter_name}} · <strong>{{a.submitter_name}}</strong>{{/if}}
               {{#if a.submitter_phone}} · <a href="tel:{{a.submitter_phone}}">{{a.submitter_phone}}</a>{{/if}}
               {{#if a.submitted_label}} · {{a.submitted_label}}{{/if}}
             </p>
@@ -73,21 +67,19 @@
               <p class="small muted" style="margin:6px 0 0">
                 Breeder:
                 {{#each a.owners as |o|}}
-                  {{o.name_en}}{{#if (eq o.review_status "PENDING")}} <span class="chip chip-warn">pending</span>{{/if}}
+                  {{nm o}}{{#if (eq o.review_status "PENDING")}} <span class="chip chip-warn">{{tr "pending"}}</span>{{/if}}
                 {{/each}}
                 {{#if a.pending_owners}}
-                  — approving the animal also publishes {{a.pending_owners}} pending breeder record(s).
+                  {{tr "— approving the animal also publishes {{n}} pending breeder records." n=a.pending_owners}}
                 {{/if}}
               </p>
             {{/if}}
           </div>
           <div class="review-actions">
             <button class="btn btn-primary btn-sm" type="button" disabled={{and (eq this.busyKind "animal") (eq this.busyId a.id)}} {{on "click" (fn this.approveAnimal a)}}>
-              {{if (and (eq this.busyKind "animal") (eq this.busyId a.id)) "Working…" "Approve"}}
+              {{if (and (eq this.busyKind "animal") (eq this.busyId a.id)) (tr "Working…") (tr "Approve")}}
             </button>
-            <button class="btn btn-danger btn-sm" type="button" disabled={{and (eq this.busyKind "animal") (eq this.busyId a.id)}} {{on "click" (fn this.rejectAnimal a)}}>
-              Reject
-            </button>
+            <button class="btn btn-danger btn-sm" type="button" disabled={{and (eq this.busyKind "animal") (eq this.busyId a.id)}} {{on "click" (fn this.rejectAnimal a)}}>{{tr "Reject"}}</button>
           </div>
         </article>
       {{/each}}
@@ -95,13 +87,13 @@
   {{/if}}
 
   {{#if this.queue.owners.length}}
-    <h2 class="section-title">Breeders · {{this.queue.owners.length}}</h2>
+    <h2 class="section-title">{{tr "Breeders · {{n}}" n=this.queue.owners.length}}</h2>
     <div class="review-list">
       {{#each this.queue.owners as |o|}}
         <article class="card review-item">
           <div class="review-main">
-            <div class="eyebrow">Owner{{#if o.links}} · {{o.links}} animal link(s){{/if}}</div>
-            <h3 style="margin:2px 0 2px">{{o.name_en}} <span class="ta muted">{{o.name_ta}}</span></h3>
+            <div class="eyebrow">{{tr "Owner"}}{{#if o.links}} · {{tr "{{n}} animal links" n=o.links}}{{/if}}</div>
+            <h3 style="margin:2px 0 2px">{{nm o}} <span class="alt-name">{{nm2 o}}</span></h3>
             <p class="small muted" style="margin:0">
               {{#if o.farm_name}}{{o.farm_name}}{{/if}}
               {{#if o.village}}{{#if o.farm_name}} · {{/if}}{{o.village}}{{/if}}
@@ -110,24 +102,22 @@
             </p>
             {{#if o.animals.length}}
               <p class="small muted" style="margin:6px 0 0">
-                Linked to:
-                {{#each o.animals as |an|}}{{an.name_en}} {{/each}}
+                {{tr "Linked to:"}}
+                {{#each o.animals as |an|}}{{nm an}} {{/each}}
               </p>
             {{/if}}
             <p class="small muted" style="margin:6px 0 0">
-              Submitted
-              {{#if o.submitter_name}}by <strong>{{o.submitter_name}}</strong>{{/if}}
+              {{tr "Submitted"}}
+              {{#if o.submitter_name}} · <strong>{{o.submitter_name}}</strong>{{/if}}
               {{#if o.submitter_phone}} · <a href="tel:{{o.submitter_phone}}">{{o.submitter_phone}}</a>{{/if}}
               {{#if o.submitted_label}} · {{o.submitted_label}}{{/if}}
             </p>
           </div>
           <div class="review-actions">
             <button class="btn btn-primary btn-sm" type="button" disabled={{and (eq this.busyKind "owner") (eq this.busyId o.id)}} {{on "click" (fn this.approveOwner o)}}>
-              {{if (and (eq this.busyKind "owner") (eq this.busyId o.id)) "Working…" "Approve"}}
+              {{if (and (eq this.busyKind "owner") (eq this.busyId o.id)) (tr "Working…") (tr "Approve")}}
             </button>
-            <button class="btn btn-danger btn-sm" type="button" disabled={{and (eq this.busyKind "owner") (eq this.busyId o.id)}} {{on "click" (fn this.rejectOwner o)}}>
-              Reject
-            </button>
+            <button class="btn btn-danger btn-sm" type="button" disabled={{and (eq this.busyKind "owner") (eq this.busyId o.id)}} {{on "click" (fn this.rejectOwner o)}}>{{tr "Reject"}}</button>
           </div>
         </article>
       {{/each}}

@@ -1,40 +1,38 @@
 <div class="stack">
   <div class="notice notice-green">
-    <strong>கண்காட்சி &amp; பால் உற்பத்தி · Shows, dairy and breeding milestones.</strong>
-    Breed exhibitions, best dams, lactation records and progeny audits — the quieter records that keep a bloodline valuable.
-  </div>
+    <strong>{{tr "கண்காட்சி &amp; பால் உற்பத்தி · Shows, dairy and breeding milestones."}}</strong>{{tr "Breed exhibitions, best dams, lactation records and progeny audits — the quieter records that keep a bloodline valuable."}}</div>
 
   <div class="grid" style="grid-template-columns:1fr; gap:26px">
     <section class="stack">
-      <div class="section-title"><h2>🏅 Breed show placings</h2><span class="small muted">{{@model.shows.meta.total}} records</span></div>
+      <div class="section-title"><h2>{{tr "🏅 Breed show placings"}}</h2><span class="small muted">{{tr "{{n}} records" n=@model.shows.meta.total}}</span></div>
       {{#if @model.shows.data.length}}
         <div class="grid grid-2">
           {{#each @model.shows.data as |ach|}}<AchievementCard @achievement={{ach}} @showAnimal={{true}} />{{/each}}
         </div>
       {{else}}
-        <EmptyState @icon="🏅" @title="No show records yet" />
+        <EmptyState @icon="🏅" @title={{tr "No show records yet"}} />
       {{/if}}
     </section>
 
     <section class="stack">
-      <div class="section-title"><h2>🥛 Dairy &amp; lactation</h2><span class="small muted">{{@model.dairy.meta.total}} records</span></div>
+      <div class="section-title"><h2>{{tr "🥛 Dairy &amp; lactation"}}</h2><span class="small muted">{{tr "{{n}} records" n=@model.dairy.meta.total}}</span></div>
       {{#if @model.dairy.data.length}}
         <div class="grid grid-2">
           {{#each @model.dairy.data as |ach|}}<AchievementCard @achievement={{ach}} @showAnimal={{true}} />{{/each}}
         </div>
       {{else}}
-        <EmptyState @icon="🥛" @title="No lactation records yet" @text="Record peak yield in litres per day and the parity." />
+        <EmptyState @icon="🥛" @title={{tr "No lactation records yet"}} @text={{tr "Record peak yield in litres per day and the parity."}} />
       {{/if}}
     </section>
 
     <section class="stack">
-      <div class="section-title"><h2>🌱 Progeny milestones</h2><span class="small muted">{{@model.progeny.meta.total}} records</span></div>
+      <div class="section-title"><h2>{{tr "🌱 Progeny milestones"}}</h2><span class="small muted">{{tr "{{n}} records" n=@model.progeny.meta.total}}</span></div>
       {{#if @model.progeny.data.length}}
         <div class="grid grid-2">
           {{#each @model.progeny.data as |ach|}}<AchievementCard @achievement={{ach}} @showAnimal={{true}} />{{/each}}
         </div>
       {{else}}
-        <EmptyState @icon="🌱" @title="No progeny milestones yet" />
+        <EmptyState @icon="🌱" @title={{tr "No progeny milestones yet"}} />
       {{/if}}
     </section>
   </div>

@@ -108,8 +108,8 @@ code, .mono { font-family: var(--mono); font-size: 0.86em; }
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
-.site-header .bar { display: flex; align-items: center; gap: 14px; height: 64px; }
-.brand { display: flex; align-items: center; gap: 11px; color: var(--ink); text-decoration: none; }
+.site-header .bar { display: flex; align-items: center; gap: 14px; height: 64px; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 11px; color: var(--ink); text-decoration: none; flex: none; }
 .brand:hover { text-decoration: none; }
 .brand-mark {
   width: 40px; height: 40px; border-radius: 11px; flex: none;
@@ -136,14 +136,15 @@ code, .mono { font-family: var(--mono); font-size: 0.86em; }
   .reg-label { display: none; }
   .header-actions .btn-primary { padding: 7px 12px; font-size: 1rem; }
 }
-.nav { display: none; gap: 2px; margin-left: 10px; }
+.nav { display: none; gap: 2px; margin-left: 10px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.nav::-webkit-scrollbar { display: none; }
 .nav a {
   padding: 8px 11px; border-radius: 999px; color: var(--ink-soft);
   font-size: 0.92rem; font-weight: 500; white-space: nowrap;
 }
 .nav a:hover { background: rgba(168, 66, 42, 0.08); color: var(--terra); text-decoration: none; }
 .nav a.active { background: var(--terra-soft); color: var(--terra-dark); font-weight: 600; }
-.header-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.header-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; flex: none; }
 .nav-toggle {
   display: inline-grid; place-items: center; width: 40px; height: 40px;
   border-radius: 10px; border: 1px solid var(--line-strong); background: var(--card);
@@ -552,3 +553,37 @@ tbody tr:hover { background: #fdf9f1; }
 .review-main h3 { font-family: var(--serif); font-size: 1.1rem; }
 .review-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .chip-warn { background: var(--ochre-soft); border-color: #e6d3a4; color: #7a5a13; font-size: 0.7rem; padding: 2px 8px; }
+
+/* ── language switch ────────────────────────────────────────────────────── */
+.lang-switch {
+  display: inline-flex; align-items: center; gap: 2px; padding: 3px;
+  border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card);
+}
+.lang-switch button {
+  border: 0; background: transparent; cursor: pointer; font: inherit;
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em;
+  color: var(--muted); padding: 4px 9px; border-radius: 999px; line-height: 1.1;
+}
+.lang-switch button:hover { color: var(--terra); }
+.lang-switch button.active { background: var(--terra); color: #fff8ee; }
+.alt-name { color: var(--muted); font-weight: 400; }
+.alt-name:not(:empty)::before { content: '· '; }
+@media (max-width: 560px) { .lang-switch button { padding: 4px 7px; } }
+
+/* ── long-language safety (Tamil labels are wider than English) ─────────── */
+.tabbar, .segmented { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.tabbar::-webkit-scrollbar, .segmented::-webkit-scrollbar { display: none; }
+.tabbar { flex-wrap: nowrap; }
+@media (max-width: 480px) {
+  .brand-text { min-width: 0; overflow: hidden; }
+  .brand-ta { max-width: 28vw; overflow: hidden; text-overflow: ellipsis; }
+  .header-actions { gap: 5px; }
+  .lang-switch { padding: 2px; }
+  .lang-switch button { padding: 4px 6px; font-size: 0.72rem; }
+  .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero h1 { font-size: 1.55rem; }
+  .hero-stat .l { font-size: 0.62rem; }
+}
+@media (max-width: 1400px) and (min-width: 1001px) {
+  .write-key-label { display: none; }
+}

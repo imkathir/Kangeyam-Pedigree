@@ -55,6 +55,44 @@ To wipe and re-seed the registry: delete `server/data/kangeyam.db*` and restart.
 *(`node_modules` is not part of the saved workspace snapshot — run the two `npm install`
 commands again if the sandbox was recycled.)*
 
+### Deploying to Vercel
+
+The repo is already wired for Vercel: `api/index.js` exports the entire Express app as one
+Node function, and `vercel.json` builds the Ember app into `web/dist`, routes `/api/*` to the
+function and keeps `/assets`, `/media`, `/fonts` out of the SPA fallback.
+
+```bash
+npx vercel link --yes            # project: kangeyam-pedigree (or import the repo in the dashboard)
+npx vercel env pull              # after adding the two variables below
+npx vercel --prod                # deploy
+```
+
+| Setting | Value |
+| --- | --- |
+| Install command | `npm install --prefix server --omit=dev && npm install --prefix web` |
+| Build command | `npm --prefix web run build` |
+| Output directory | `web/dist` |
+| Node.js | 22.x |
+
+**Persistence.** Serverless functions have no writable disk, so `server/src/db.js` speaks the
+better-sqlite3-compatible libSQL API: point it at a hosted database and the same synchronous
+queries run over HTTPS.
+
+```
+TURSO_DATABASE_URL=libsql://<db>-<org>.turso.io
+TURSO_AUTH_TOKEN=<token>
+```
+
+Without those two variables the function falls back to `/tmp` and seeds the demo registry on
+each cold start — every page works, but edits vanish after the instance is recycled. To create
+the hosted database: `turso db create kangeyam`, `turso db show kangeyam --url`,
+`turso db tokens create kangeyam`, then load the schema + seed once with
+`turso db shell kangeyam < server/src/schema.sql` (or start the deployed API and let the first
+request seed an empty database).
+
+`GET /api/v1/health` reports `{"status":"ok","animals":29,"database":"turso|file|ephemeral"}`
+so you can confirm which mode a deployment is in.
+
 ---
 
 ## 3. Core modelling decisions

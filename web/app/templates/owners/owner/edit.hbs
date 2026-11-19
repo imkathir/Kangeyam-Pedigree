@@ -1,0 +1,66 @@
+<form class="stack" {{on "submit" this.save}} style="max-width:760px">
+  <div class="between">
+    <div>
+      <div class="eyebrow">Edit breeder</div>
+      <h2 style="margin:0">{{this.owner.name_en}}</h2>
+    </div>
+    <LinkTo @route="owners.owner" @model={{this.owner.id}} class="btn btn-ghost btn-sm">Cancel</LinkTo>
+  </div>
+
+  <FormErrors @errors={{this.errors}} />
+
+  <fieldset class="fieldset">
+    <legend>Identity</legend>
+    <div class="form-grid">
+      <div class="field">
+        <label for="name_en">Name (English) <span class="req">*</span></label>
+        <input id="name_en" type="text" value={{this.name_en}} {{on "input" (fn this.set "name_en")}}>
+      </div>
+      <div class="field">
+        <label for="name_ta">Name (Tamil)</label>
+        <input id="name_ta" type="text" class="ta" value={{this.name_ta}} {{on "input" (fn this.set "name_ta")}}>
+      </div>
+      <div class="field span-2">
+        <label for="farm">Farm / family title</label>
+        <input id="farm" type="text" value={{this.farm_name}} {{on "input" (fn this.set "farm_name")}}>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Contact &amp; place</legend>
+    <div class="form-grid">
+      <div class="field">
+        <label for="phone">Phone / WhatsApp</label>
+        <input id="phone" type="tel" value={{this.phone}} {{on "input" (fn this.set "phone")}}>
+        {{#if this.owner.has_private_phone}}<div class="hint">Currently private — tick the box below to publish it.</div>{{/if}}
+      </div>
+      <div class="field">
+        <label for="village">Village / town</label>
+        <input id="village" type="text" value={{this.village}} {{on "input" (fn this.set "village")}}>
+      </div>
+      <div class="field">
+        <label for="district">District</label>
+        <select id="district" {{on "change" (fn this.set "district")}}>
+          <option value="">—</option>
+          {{#each this.districts as |d|}}
+            <option value={{d}} selected={{eq this.district d}}>{{d}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="field span-2">
+        <label for="notes">Notes</label>
+        <textarea id="notes" {{on "input" (fn this.set "notes")}}>{{this.notes}}</textarea>
+      </div>
+    </div>
+    <label class="checkline">
+      <input type="checkbox" checked={{this.is_contact_public}} {{on "change" (fn this.set "is_contact_public")}}>
+      <span>Publish this phone number on public animal and owner pages</span>
+    </label>
+  </fieldset>
+
+  <div class="row-wrap">
+    <button type="submit" class="btn btn-primary btn-lg" disabled={{this.saving}}>{{if this.saving "Saving…" "Save changes"}}</button>
+    <LinkTo @route="owners.owner" @model={{this.owner.id}} class="btn btn-ghost btn-lg">Cancel</LinkTo>
+  </div>
+</form>

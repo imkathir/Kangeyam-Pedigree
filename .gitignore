@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+
+# build output
+web/dist/
+web/tmp/
+web/.node_modules.ember-toc/
+
+# generated database (auto-seeded on first run)
+server/data/*.db
+server/data/*.db-shm
+server/data/*.db-wal
+
+# env / secrets / logs
+.env
+.env.*
+*.log
+npm-debug.log*
+
+# editors & OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

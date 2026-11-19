@@ -1,0 +1,182 @@
+<form class="stack" {{on "submit" this.save}}>
+  <div class="between">
+    <div>
+      <div class="eyebrow">Update record</div>
+      <h2 style="margin:0">Edit {{this.animal.name_en}}</h2>
+      <p class="small muted" style="margin:4px 0 0">Parents, coat, dates and location can all be corrected as better information arrives.</p>
+    </div>
+    <LinkTo @route="animals.animal" @model={{this.animal.id}} class="btn btn-ghost btn-sm">Cancel</LinkTo>
+  </div>
+
+  <FormErrors @errors={{this.errors}} @title="Could not save changes" />
+
+  {{#if this.animal.is_stub}}
+    <div class="notice">
+      <strong>This is a stub ancestor.</strong> It was created with only a name and village.
+      Fill in the details below and untick “keep as stub” to upgrade it into a full profile.
+    </div>
+  {{/if}}
+
+  <fieldset class="fieldset">
+    <legend>Identity</legend>
+    <div class="form-grid">
+      <div class="field">
+        <label for="name_ta">Tamil name <span class="req">*</span></label>
+        <input id="name_ta" type="text" class="ta" value={{this.name_ta}} {{on "input" (fn this.set "name_ta")}}>
+      </div>
+      <div class="field">
+        <label for="name_en">English name <span class="req">*</span></label>
+        <input id="name_en" type="text" value={{this.name_en}} {{on "input" (fn this.set "name_en")}}>
+      </div>
+      <div class="field">
+        <label for="tag">Ear tag / registration no.</label>
+        <input id="tag" type="text" value={{this.tag_or_reg_no}} {{on "input" (fn this.set "tag_or_reg_no")}}>
+      </div>
+      <div class="field">
+        <label for="sex">Sex</label>
+        <select id="sex" {{on "change" (fn this.set "sex")}}>
+          <option value="BULL" selected={{eq this.sex "BULL"}}>Bull (காளை)</option>
+          <option value="COW" selected={{eq this.sex "COW"}}>Cow (பசு)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="status">Status</label>
+        <select id="status" {{on "change" (fn this.set "status")}}>
+          {{#each this.statuses as |s|}}
+            <option value={{s.value}} selected={{eq this.status s.value}}>{{s.en}} · {{s.ta}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="field">
+        <span class="label">Profile type</span>
+        <label class="checkline" style="margin:8px 0 0">
+          <input type="checkbox" checked={{this.is_stub}} {{on "change" (fn this.set "is_stub")}}>
+          <span>Keep as stub ancestor (name &amp; village only)</span>
+        </label>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Age</legend>
+    <div class="form-grid">
+      <div class="field">
+        <label for="dob">Date of birth</label>
+        <input id="dob" type="date" value={{this.dob}} {{on "input" (fn this.set "dob")}}>
+        <div class="hint">Leave blank when unknown; use the tooth stage instead.</div>
+      </div>
+      <div class="field">
+        <label for="precision">DOB precision</label>
+        <select id="precision" {{on "change" (fn this.set "dob_precision")}}>
+          {{#each this.precisions as |p|}}
+            <option value={{p.value}} selected={{eq this.dob_precision p.value}}>{{p.en}} · {{p.ta}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="field">
+        <label for="teeth">Dentition stage</label>
+        <select id="teeth" {{on "change" (fn this.set "dentition_stage")}}>
+          <option value="">— Not recorded —</option>
+          {{#each this.dentitions as |d|}}
+            <option value={{d.value}} selected={{eq this.dentition_stage d.value}}>{{d.en}} · {{d.ta}}</option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Coat &amp; markings</legend>
+    <div class="form-grid">
+      <div class="field">
+        <label for="birth">Birth coat</label>
+        <select id="birth" {{on "change" (fn this.set "birth_color")}}>
+          <option value="">— Not recorded —</option>
+          {{#each this.birthColors as |c|}}
+            <option value={{c.value}} selected={{eq this.birth_color c.value}}>{{c.ta}} · {{c.en}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="field">
+        <label for="color">Current coat colour <span class="req">*</span></label>
+        <select id="color" {{on "change" (fn this.set "current_color")}}>
+          {{#each this.colors as |c|}}
+            <option value={{c.value}} selected={{eq this.current_color c.value}}>{{c.ta}} · {{c.en}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="field span-2">
+        <label for="markings">Distinctive markings</label>
+        <textarea id="markings" {{on "input" (fn this.set "distinctive_markings")}}>{{this.distinctive_markings}}</textarea>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Location</legend>
+    <div class="form-grid">
+      <div class="field">
+        <label for="village">Current village</label>
+        <input id="village" type="text" value={{this.current_village}} {{on "input" (fn this.set "current_village")}}>
+        <div class="hint">Independent of the owner's home village.</div>
+      </div>
+      <div class="field">
+        <label for="district">District</label>
+        <select id="district" {{on "change" (fn this.set "current_district")}}>
+          <option value="">—</option>
+          {{#each this.districts as |d|}}
+            <option value={{d}} selected={{eq this.current_district d}}>{{d}}</option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="fieldset">
+    <legend>Pedigree links</legend>
+    <p class="small muted" style="margin-top:0">Leave either blank for “unknown”. Linking a parent grows the whole tree above it automatically.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label>Sire (father)</label>
+        <AnimalSearch @sex="BULL" @selected={{this.sire}} @onSelect={{fn this.assign "sire"}} @excludeId={{this.animal.id}} />
+        {{#if this.sire}}<div class="hint">Linked to <LinkTo @route="animals.animal" @model={{this.sire.id}}>{{this.sire.name_en}}</LinkTo></div>{{/if}}
+      </div>
+      <div class="field">
+        <label>Dam (mother)</label>
+        <AnimalSearch @sex="COW" @selected={{this.dam}} @onSelect={{fn this.assign "dam"}} @excludeId={{this.animal.id}} />
+        {{#if this.dam}}<div class="hint">Linked to <LinkTo @route="animals.animal" @model={{this.dam.id}}>{{this.dam.name_en}}</LinkTo></div>{{/if}}
+      </div>
+      <div class="field span-2">
+        <label for="notes">Notes</label>
+        <textarea id="notes" {{on "input" (fn this.set "notes")}} placeholder="Anything the record should remember">{{this.notes}}</textarea>
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="row-wrap">
+    <button type="submit" class="btn btn-primary btn-lg" disabled={{this.saving}}>{{if this.saving "Saving…" "Save changes"}}</button>
+    <LinkTo @route="animals.animal" @model={{this.animal.id}} class="btn btn-ghost btn-lg">Cancel</LinkTo>
+  </div>
+
+  <hr class="divider">
+
+  <div class="card" style="border-color:#e5c3c1">
+    <div class="between">
+      <div>
+        <div class="eyebrow" style="color:var(--danger)">Danger zone</div>
+        <p class="small" style="margin:0">
+          Deleting an animal that is linked as a parent anywhere archives the record instead of removing it,
+          so no pedigree breaks.
+        </p>
+      </div>
+      {{#if this.confirmDelete}}
+        <div class="row" style="gap:6px">
+          <button type="button" class="btn btn-danger" {{on "click" (fn this.destroy false)}}>Yes, delete / archive</button>
+          <button type="button" class="btn btn-quiet" {{on "click" this.toggleDelete}}>Cancel</button>
+        </div>
+      {{else}}
+        <button type="button" class="btn btn-danger" {{on "click" this.toggleDelete}}>Delete record</button>
+      {{/if}}
+    </div>
+  </div>
+</form>

@@ -1,0 +1,28 @@
+<div class="ach">
+  <div class="ach-icon" aria-hidden="true">{{or @achievement.category_label.icon "🏅"}}</div>
+  <div class="ach-body">
+    <div class="ach-title">{{@achievement.event_name}}</div>
+    <div class="ach-metric">{{@achievement.rank_or_metric}}</div>
+    <div class="ach-meta">
+      <span class="badge badge-ochre">{{@achievement.category_label.en}}</span>
+      {{#if @achievement.location}}<span>📍 {{@achievement.location}}</span>{{/if}}
+      {{#if @achievement.event_date}}<span>{{@achievement.event_date}}</span>{{/if}}
+      {{#if @achievement.partner}}
+        <span>with <LinkTo @route="animals.animal" @model={{@achievement.partner.id}}>{{@achievement.partner.name_en}}</LinkTo></span>
+      {{/if}}
+    </div>
+    {{#if @showAnimal}}
+      <div class="ach-meta" style="margin-top:7px">
+        <LinkTo @route="animals.animal" @model={{@achievement.animal.id}} class="strong">
+          {{@achievement.animal.name_en}} <span class="ta">({{@achievement.animal.name_ta}})</span>
+        </LinkTo>
+        <span class="badge {{if (eq @achievement.animal.sex "BULL") "badge-bull" "badge-cow"}}">{{@achievement.animal.sex}}</span>
+        {{#if @achievement.animal.current_village}}<span class="muted tiny">{{@achievement.animal.current_village}}</span>{{/if}}
+      </div>
+    {{/if}}
+    {{#if @achievement.notes}}<p class="tiny muted" style="margin:6px 0 0">{{@achievement.notes}}</p>{{/if}}
+  </div>
+  {{#if (has-block)}}
+    <div class="no-print">{{yield}}</div>
+  {{/if}}
+</div>

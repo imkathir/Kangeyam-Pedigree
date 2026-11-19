@@ -1,0 +1,115 @@
+<div class="stack">
+  <div class="between">
+    <div>
+      <div class="eyebrow">Cattle registry · கால்நடைப் பட்டியல்</div>
+      <h1 style="margin:0">Bulls &amp; cows of the Kongu region</h1>
+      <p class="muted small" style="margin:6px 0 0">
+        Search in Tamil or English. Every record shows how many generations of pedigree are documented.
+      </p>
+    </div>
+    <LinkTo @route="animals.new" class="btn btn-primary">+ Register animal</LinkTo>
+  </div>
+
+  <div class="filters">
+    <div class="grid">
+      <div class="search-input">
+        <span class="icon" aria-hidden="true">🔍</span>
+        <input type="text" value={{this.q}} placeholder="Search name, tag, village, owner…" {{on "input" this.onSearch}} aria-label="Search cattle">
+      </div>
+
+      <select {{on "change" (fn this.update "color")}} aria-label="Coat colour">
+        <option value="">All coat colours</option>
+        {{#each this.colors as |c|}}
+          <option value={{c.value}} selected={{eq this.color c.value}}>{{c.ta}} · {{c.en}}</option>
+        {{/each}}
+      </select>
+
+      <select {{on "change" (fn this.update "sort")}} aria-label="Sort by">
+        <option value="recent" selected={{eq this.sort "recent"}}>Newest first</option>
+        <option value="generations" selected={{eq this.sort "generations"}}>Deepest pedigree</option>
+        <option value="achievements" selected={{eq this.sort "achievements"}}>Most achievements</option>
+        <option value="offspring" selected={{eq this.sort "offspring"}}>Most progeny</option>
+        <option value="name" selected={{eq this.sort "name"}}>Name (A–Z)</option>
+        <option value="name_ta" selected={{eq this.sort "name_ta"}}>Tamil name (அ–ஔ)</option>
+        <option value="oldest" selected={{eq this.sort "oldest"}}>Oldest first</option>
+      </select>
+
+      <select {{on "change" (fn this.update "min_generations")}} aria-label="Minimum generations">
+        <option value="" selected={{eq this.min_generations ""}}>Any pedigree depth</option>
+        <option value="1" selected={{eq this.min_generations "1"}}>≥ 1 generation</option>
+        <option value="2" selected={{eq this.min_generations "2"}}>≥ 2 generations</option>
+        <option value="3" selected={{eq this.min_generations "3"}}>≥ 3 generations</option>
+        <option value="4" selected={{eq this.min_generations "4"}}>≥ 4 generations</option>
+      </select>
+    </div>
+
+    <div class="filter-tags">
+      <button type="button" class="chip {{if (eq this.sex "BULL") "active"}}" {{on "click" (fn this.toggleSex "BULL")}}>♂ Bulls</button>
+      <button type="button" class="chip {{if (eq this.sex "COW") "active"}}" {{on "click" (fn this.toggleSex "COW")}}>♀ Cows</button>
+      <button type="button" class="chip {{if this.has_achievements "active"}}" {{on "click" this.toggleAchievements}}>🏅 Has achievements</button>
+      <input
+        type="text"
+        value={{this.village}}
+        placeholder="Village / district"
+        style="max-width:190px;padding:6px 12px;border-radius:999px;font-size:0.84rem"
+        {{on "change" (fn this.update "village")}}
+        aria-label="Filter by village"
+      >
+      {{#if this.activeFilters.length}}
+        <button type="button" class="chip" {{on "click" this.clearAll}}>✕ Clear all</button>
+      {{/if}}
+    </div>
+
+    {{#if this.activeFilters.length}}
+      <div class="filter-tags">
+        {{#each this.activeFilters as |f|}}
+          <span class="badge badge-terra">
+            {{f.label}}
+            <button type="button" style="border:0;background:none;cursor:pointer;color:inherit;padding:0 0 0 3px" {{on "click" (fn this.clearFilter f.key)}} aria-label="Remove filter">✕</button>
+          </span>
+        {{/each}}
+      </div>
+    {{/if}}
+  </div>
+
+  <div class="between">
+    <p class="small muted" style="margin:0">
+      <strong style="color:var(--ink)">{{this.model.meta.total}}</strong>
+      {{if (eq this.model.meta.total 1) "animal" "animals"}} found
+      {{#if this.model.meta.total_pages}} · page {{this.model.meta.page}} of {{this.model.meta.total_pages}}{{/if}}
+    </p>
+  </div>
+
+  {{#if this.model.data.length}}
+    <div class="grid grid-auto">
+      {{#each this.model.data as |animal|}}
+        <AnimalCard @animal={{animal}} />
+      {{/each}}
+    </div>
+
+    {{#if (gt this.model.meta.total_pages 1)}}
+      <nav class="pagination" aria-label="Pagination">
+        {{#if (gt this.model.meta.page 1)}}
+          <LinkTo @route="animals" @query={{hash page=(sub this.model.meta.page 1)}}>← Prev</LinkTo>
+        {{/if}}
+        {{#each this.pageNumbers as |p|}}
+          {{#if (eq p this.model.meta.page)}}
+            <span class="current">{{p}}</span>
+          {{else}}
+            <LinkTo @route="animals" @query={{hash page=p}}>{{p}}</LinkTo>
+          {{/if}}
+        {{/each}}
+        {{#if (lt this.model.meta.page this.model.meta.total_pages)}}
+          <LinkTo @route="animals" @query={{hash page=(add this.model.meta.page 1)}}>Next →</LinkTo>
+        {{/if}}
+      </nav>
+    {{/if}}
+  {{else}}
+    <EmptyState @title="No animals match these filters" @text="Try a different spelling in Tamil or English, or register this animal yourself." @icon="🔍">
+      <div class="row-wrap" style="justify-content:center">
+        <button type="button" class="btn btn-ghost" {{on "click" this.clearAll}}>Clear filters</button>
+        <LinkTo @route="animals.new" class="btn btn-primary">Register an animal</LinkTo>
+      </div>
+    </EmptyState>
+  {{/if}}
+</div>

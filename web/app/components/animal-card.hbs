@@ -1,0 +1,37 @@
+<LinkTo @route="animals.animal" @model={{@animal.id}} class="animal-card">
+  <div class="animal-card-media">
+    {{#if @animal.photo_url}}
+      <img src={{@animal.photo_url}} alt="{{@animal.name_en}} — Kangeyam {{if (eq @animal.sex "BULL") "bull" "cow"}}" loading="lazy">
+    {{else}}
+      <div class="placeholder" aria-hidden="true">
+        <svg width="54" height="54" viewBox="0 0 24 24" fill="none">
+          <path d="M4 20c0-5 2.4-8.6 5.2-9.6M20 20c0-5-2.4-8.6-5.2-9.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="M7 6.5c1.6-1.6 3-2.2 5-2.2s3.4.6 5 2.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+    {{/if}}
+    <div class="animal-card-badges">
+      <span class="badge {{if (eq @animal.sex "BULL") "badge-bull" "badge-cow"}}">{{if (eq @animal.sex "BULL") "BULL" "COW"}}</span>
+      {{#if @animal.is_stub}}<span class="badge badge-stub">Stub ancestor</span>{{/if}}
+      {{#if (gt @animal.documented_generations 0)}}
+        <span class="badge badge-gen">Gen {{@animal.documented_generations}}</span>
+      {{/if}}
+    </div>
+  </div>
+  <div class="animal-card-body">
+    <h3 class="animal-card-name">
+      {{@animal.name_en}}
+      <span class="ta">{{@animal.name_ta}}</span>
+    </h3>
+    <div class="animal-card-meta">
+      <span class="row" style="gap:5px"><ColorDot @color={{@animal.current_color}} /> {{@animal.color_label.en}}</span>
+      {{#if @animal.current_village}}<span>📍 {{@animal.current_village}}{{#if @animal.current_district}}, {{@animal.current_district}}{{/if}}</span>{{/if}}
+      {{#if @animal.age}}<span>{{@animal.age.label}}</span>{{/if}}
+      {{#if (gt @animal.achievement_count 0)}}<span>🏅 {{@animal.achievement_count}}</span>{{/if}}
+      {{#if @animal.offspring_count}}<span>🐄 {{@animal.offspring_count}} progeny</span>{{/if}}
+    </div>
+    {{#if @animal.tag_or_reg_no}}
+      <div class="animal-card-tag">{{@animal.tag_or_reg_no}}</div>
+    {{/if}}
+  </div>
+</LinkTo>

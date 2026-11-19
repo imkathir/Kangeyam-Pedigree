@@ -1,0 +1,51 @@
+<SiteHeader />
+
+<main class="page">
+  <div class="shell">
+    {{outlet}}
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="shell">
+    <div class="cols">
+      <div>
+        <div class="row" style="gap:9px;margin-bottom:8px">
+          <span class="brand-mark" style="width:30px;height:30px;border-radius:8px" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M4 20c0-5 2.4-8.6 5.2-9.6M20 20c0-5-2.4-8.6-5.2-9.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M7 6.5c1.6-1.6 3-2.2 5-2.2s3.4.6 5 2.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <strong style="color:var(--ink)">காங்கேயம் கால்நடைப் பட்டியல் · Kangeyam Cattle Registry</strong>
+        </div>
+        <p class="small" style="max-width:56ch">
+          An open community registry for purebred Kangeyam cattle of the Kongu region — pedigree from
+          generation zero, ownership history, Rekla &amp; Jallikattu records. Every animal starts at
+          <em>Generation 0</em> (parents unknown) and grows as the community documents more.
+        </p>
+      </div>
+      <div>
+        <div class="eyebrow">Registry</div>
+        <div class="stack-sm small">
+          <LinkTo @route="animals">All cattle</LinkTo>
+          <LinkTo @route="animals.new">Register an animal</LinkTo>
+          <LinkTo @route="mating-planner">Mating planner</LinkTo>
+        </div>
+      </div>
+      <div>
+        <div class="eyebrow">Community</div>
+        <div class="stack-sm small">
+          <LinkTo @route="owners">Breeders &amp; farms</LinkTo>
+          <LinkTo @route="achievements.rekla">Rekla winners</LinkTo>
+          <LinkTo @route="achievements.jallikattu">Jallikattu bulls</LinkTo>
+        </div>
+      </div>
+    </div>
+    <p class="tiny" style="margin-top:22px">
+      Data entered by breeders is stored as recorded. Pedigree links are user-documented, not genetic proof.
+    </p>
+  </div>
+</footer>
+
+<FlashMessages />

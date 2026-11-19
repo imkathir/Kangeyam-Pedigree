@@ -1,0 +1,44 @@
+<header class="site-header">
+  <div class="shell bar">
+    <LinkTo @route="dashboard" class="brand" {{on "click" this.close}}>
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M4 20c0-5 2.4-8.6 5.2-9.6M20 20c0-5-2.4-8.6-5.2-9.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          <path d="M7 6.5c1.6-1.6 3-2.2 5-2.2s3.4.6 5 2.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          <circle cx="9.2" cy="13.4" r="1.3" fill="currentColor"/>
+          <circle cx="14.8" cy="13.4" r="1.3" fill="currentColor"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="brand-ta">காங்கேயம் பட்டியல்</span>
+        <span class="brand-en">Kangeyam Registry</span>
+      </span>
+    </LinkTo>
+
+    <nav class="nav" aria-label="Main">
+      <LinkTo @route="dashboard" class={{if this.isDashboard "active"}}>Dashboard</LinkTo>
+      <LinkTo @route="animals" class={{if this.isAnimals "active"}}>Cattle</LinkTo>
+      <LinkTo @route="owners" class={{if this.isOwners "active"}}>Owners</LinkTo>
+      <LinkTo @route="achievements" class={{if this.isAchievements "active"}}>Hall of Fame</LinkTo>
+      <LinkTo @route="mating-planner" class={{if this.isPlanner "active"}}>Mating Planner</LinkTo>
+    </nav>
+
+    <div class="header-actions">
+      <LinkTo @route="animals.new" class="btn btn-primary btn-sm" aria-label="Register a new animal">+<span class="reg-label"> Register</span></LinkTo>
+      <button class="nav-toggle" type="button" {{on "click" this.toggle}} aria-label="Menu" aria-expanded={{this.open}}>
+        {{if this.open "✕" "☰"}}
+      </button>
+    </div>
+  </div>
+
+  {{#if this.open}}
+    <div class="shell mobile-nav">
+      <LinkTo @route="dashboard" class={{if this.isDashboard "active"}} {{on "click" this.close}}>Dashboard</LinkTo>
+      <LinkTo @route="animals" class={{if this.isAnimals "active"}} {{on "click" this.close}}>Cattle registry</LinkTo>
+      <LinkTo @route="owners" class={{if this.isOwners "active"}} {{on "click" this.close}}>Owners & breeders</LinkTo>
+      <LinkTo @route="achievements" class={{if this.isAchievements "active"}} {{on "click" this.close}}>Hall of fame</LinkTo>
+      <LinkTo @route="mating-planner" class={{if this.isPlanner "active"}} {{on "click" this.close}}>Mating planner</LinkTo>
+      <LinkTo @route="animals.new" class="active" {{on "click" this.close}}>Register a new animal</LinkTo>
+    </div>
+  {{/if}}
+</header>

@@ -1,0 +1,69 @@
+<div class="stack">
+  <div class="filters">
+    <div class="grid" style="grid-template-columns:1fr">
+      <div class="search-input">
+        <span class="icon" aria-hidden="true">🔍</span>
+        <input type="text" value={{this.q}} placeholder="Search event, bull name, location…" {{on "input" this.onSearch}} aria-label="Search achievements">
+      </div>
+    </div>
+    <div class="filter-tags">
+      <LinkTo @route="achievements" class={{if (eq this.category "") "chip active" "chip"}}>All</LinkTo>
+      <LinkTo @route="achievements" @query={{hash category="REKLA_RACE"}} class={{if (eq this.category "REKLA_RACE") "chip active" "chip"}}>🏁 Rekla</LinkTo>
+      <LinkTo @route="achievements" @query={{hash category="JALLIKATTU"}} class={{if (eq this.category "JALLIKATTU") "chip active" "chip"}}>🐂 Jallikattu</LinkTo>
+      <LinkTo @route="achievements" @query={{hash category="BREED_SHOW"}} class={{if (eq this.category "BREED_SHOW") "chip active" "chip"}}>🏅 Breed show</LinkTo>
+      <LinkTo @route="achievements" @query={{hash category="DAIRY_LACTATION"}} class={{if (eq this.category "DAIRY_LACTATION") "chip active" "chip"}}>🥛 Dairy</LinkTo>
+      <LinkTo @route="achievements" @query={{hash category="PROGENY_MILESTONE"}} class={{if (eq this.category "PROGENY_MILESTONE") "chip active" "chip"}}>🌱 Progeny</LinkTo>
+      <LinkTo @route="achievements" @query={{hash category="DRAUGHT_ENDURANCE"}} class={{if (eq this.category "DRAUGHT_ENDURANCE") "chip active" "chip"}}>🌾 Draught</LinkTo>
+    </div>
+  </div>
+
+  <div class="sidebar-layout">
+    <div class="stack">
+      {{#if this.model.data.length}}
+        <div class="stack-sm">
+          {{#each this.model.data as |ach|}}
+            <AchievementCard @achievement={{ach}} @showAnimal={{true}} />
+          {{/each}}
+        </div>
+        {{#if (gt this.model.meta.total_pages 1)}}
+          <nav class="pagination">
+            {{#if (gt this.model.meta.page 1)}}
+              <LinkTo @route="achievements" @query={{hash page=(sub this.model.meta.page 1)}}>← Prev</LinkTo>
+            {{/if}}
+            <span class="current">{{this.model.meta.page}} / {{this.model.meta.total_pages}}</span>
+            {{#if (lt this.model.meta.page this.model.meta.total_pages)}}
+              <LinkTo @route="achievements" @query={{hash page=(add this.model.meta.page 1)}}>Next →</LinkTo>
+            {{/if}}
+          </nav>
+        {{/if}}
+      {{else}}
+        <EmptyState @icon="🏅" @title="No records match" @text="Try clearing the category filter or searching a different event name." />
+      {{/if}}
+    </div>
+
+    <aside class="stack">
+      <div class="card">
+        <div class="eyebrow">Leaderboard</div>
+        <h3 style="margin-top:0">{{if this.category "Top in category" "Most decorated"}}</h3>
+        <div class="stack-sm">
+          {{#each this.model.meta.leaderboard as |row|}}
+            <div class="row" style="justify-content:space-between;gap:8px">
+              <LinkTo @route="animals.animal" @model={{row.id}} class="row" style="gap:7px;color:inherit">
+                <ColorDot @color={{row.current_color}} />
+                <span class="small"><strong>{{row.name_en}}</strong> <span class="ta muted">{{row.name_ta}}</span></span>
+              </LinkTo>
+              <span class="badge badge-ochre">{{row.wins}}</span>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+      <div class="card">
+        <div class="eyebrow">How records work</div>
+        <p class="small muted" style="margin:0">
+          Achievements are attached to an animal, not to a person. A paired Rekla race is stored on both bulls,
+          each pointing at the other as the partner.
+        </p>
+      </div>
+    </aside>
+  </div>
+</div>

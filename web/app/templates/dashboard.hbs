@@ -1,0 +1,118 @@
+<div class="stack-lg">
+  <section class="hero">
+    <div class="hero-media" aria-hidden="true">
+      <img src="/media/bull-herd.jpg" alt="">
+    </div>
+    <div class="hero-inner">
+      <div class="hero-ta">கொங்கு நாடு · காங்கேயம் இனம்</div>
+      <h1>Every Kangeyam bloodline,<br>from generation zero.</h1>
+      <p>
+        A community registry for the purebred bulls and cows of the Kongu region. Document a calf with
+        unknown parents today, and let its pedigree grow backwards and forwards as breeders add ancestors,
+        owners and Rekla records over time.
+      </p>
+      <div class="row-wrap" style="margin-top:20px">
+        <LinkTo @route="animals.new" class="btn btn-primary btn-lg">Register an animal</LinkTo>
+        <LinkTo @route="animals" class="btn btn-ghost btn-lg" style="background:rgba(255,253,248,0.12);border-color:rgba(255,246,233,0.4);color:#fff8ee">Browse the registry</LinkTo>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="n">{{this.model.stats.animals}}</div><div class="l">Animals</div></div>
+        <div class="hero-stat"><div class="n">{{this.model.stats.bulls}}<span style="opacity:.5;font-size:1rem"> / </span>{{this.model.stats.cows}}</div><div class="l">Bulls / Cows</div></div>
+        <div class="hero-stat"><div class="n">{{this.model.stats.deepest_generations}}</div><div class="l">Deepest generation</div></div>
+        <div class="hero-stat"><div class="n">{{this.model.stats.achievements}}</div><div class="l">Recorded achievements</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stat-grid">
+    <StatCard @value={{this.model.stats.gen_zero}} @label="Generation 0" @sub="Parents still unknown" />
+    <StatCard @value={{this.model.stats.fully_documented}} @label="3+ generations" @sub="Deep pedigrees" />
+    <StatCard @value={{this.model.stats.owners}} @label="Breeders & farms" />
+    <StatCard @value={{this.model.stats.villages}} @label="Villages covered" />
+  </section>
+
+  <section class="grid grid-auto">
+    <LinkTo @route="animals.new" class="card" style="color:inherit">
+      <div class="eyebrow">Fast entry</div>
+      <h3>Register in 60 seconds</h3>
+      <p class="small muted" style="margin:0">Name in Tamil &amp; English, sex, coat colour — done. Parents can be added later.</p>
+    </LinkTo>
+    <LinkTo @route="mating-planner" class="card" style="color:inherit">
+      <div class="eyebrow">Lineage check</div>
+      <h3>Mating planner</h3>
+      <p class="small muted" style="margin:0">Compare two animals across every recorded generation before you plan a calving.</p>
+    </LinkTo>
+    <LinkTo @route="achievements" class="card" style="color:inherit">
+      <div class="eyebrow">Hall of fame</div>
+      <h3>Rekla, Jallikattu &amp; shows</h3>
+      <p class="small muted" style="margin:0">{{this.model.stats.achievements}} competitive and breeding records, searchable by category.</p>
+    </LinkTo>
+    <LinkTo @route="owners" class="card" style="color:inherit">
+      <div class="eyebrow">Directory</div>
+      <h3>Breeders &amp; farms</h3>
+      <p class="small muted" style="margin:0">Stud farms and family herds, with phone contacts kept private unless shared.</p>
+    </LinkTo>
+  </section>
+
+  <div class="grid" style="grid-template-columns:1fr; gap:22px">
+    <section class="sidebar-layout">
+      <div class="stack">
+        <div class="section-title">
+          <h2>Deepest documented bloodlines</h2>
+          <LinkTo @route="animals" @query={{hash min_generations=2 sort="generations"}} class="small">View all →</LinkTo>
+        </div>
+        <div class="grid grid-2">
+          {{#each this.model.deepest as |a|}}
+            <AnimalCard @animal={{a}} />
+          {{/each}}
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="section-title">
+          <h2>Latest achievements</h2>
+          <LinkTo @route="achievements" class="small">All →</LinkTo>
+        </div>
+        <div class="stack-sm">
+          {{#each this.model.achievements as |ach|}}
+            <AchievementCard @achievement={{ach}} @showAnimal={{true}} />
+          {{/each}}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="grid" style="grid-template-columns:1fr; gap:22px">
+    <div class="sidebar-layout">
+      <div class="stack">
+        <div class="section-title"><h2>Recently registered</h2><LinkTo @route="animals" class="small">Registry →</LinkTo></div>
+        <div class="grid grid-3">
+          {{#each this.model.recent as |a|}}
+            <AnimalCard @animal={{a}} />
+          {{/each}}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="eyebrow">Coat colours</div>
+        <h3>Kangeyam colour classes</h3>
+        <div class="stack-sm" style="margin-top:12px">
+          {{#each this.model.stats.by_color as |c|}}
+            <div class="row" style="justify-content:space-between">
+              <LinkTo @route="animals" @query={{hash color=c.color}} class="row" style="gap:8px;color:inherit">
+                <ColorDot @color={{c.color}} />
+                <span class="small"><strong>{{c.label.ta}}</strong> <span class="muted">{{c.label.en}}</span></span>
+              </LinkTo>
+              <span class="badge">{{c.count}}</span>
+            </div>
+          {{/each}}
+        </div>
+        <hr class="divider">
+        <p class="tiny muted" style="margin:0">
+          Calves are born red/fawn and shift to their adult grey or dark coat by about six months —
+          the registry keeps both colours on every record.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>

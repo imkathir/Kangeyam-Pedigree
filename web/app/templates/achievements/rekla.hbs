@@ -1,0 +1,54 @@
+<div class="stack">
+  <div class="notice" style="background:var(--terra-soft);border-color:#eed3c7;color:var(--terra-dark)">
+    <strong>ரேக்ளா பந்தயம் · Rekla race.</strong> Two Kangeyam bulls, one cart, 200–300 metres of dust.
+    Records list the timing, the place and the partner bull that ran alongside.
+  </div>
+
+  <div class="sidebar-layout">
+    <div class="stack">
+      <div class="section-title"><h2>Race results ({{@model.meta.total}})</h2></div>
+      {{#if @model.data.length}}
+        <div class="stack-sm">
+          {{#each @model.data as |ach|}}
+            <AchievementCard @achievement={{ach}} @showAnimal={{true}} />
+          {{/each}}
+        </div>
+      {{else}}
+        <EmptyState @icon="🏁" @title="No Rekla results yet" @text="Add a race result from any bull's achievement page." />
+      {{/if}}
+
+      <div class="card">
+        <h3 style="margin-top:0">How the pairing works</h3>
+        <p class="small muted" style="margin:0">
+          A Rekla cart is drawn by a pair — usually the stronger bull on the left. In the registry each bull
+          carries its own copy of the result, and both point to each other as <em>partner_animal</em>, so you can
+          open either animal and see the same race from its side of the yoke.
+        </p>
+      </div>
+    </div>
+
+    <aside class="stack">
+      <div class="card">
+        <div class="eyebrow">Fastest first</div>
+        <h3 style="margin-top:0">Rekla leaderboard</h3>
+        <div class="stack-sm">
+          {{#each @model.meta.leaderboard as |row|}}
+            <div class="row" style="justify-content:space-between">
+              <LinkTo @route="animals.animal" @model={{row.id}} class="row" style="gap:7px;color:inherit">
+                <span class="badge {{if (eq row.sex "BULL") "badge-bull" "badge-cow"}}">{{row.sex}}</span>
+                <span class="small"><strong>{{row.name_en}}</strong></span>
+              </LinkTo>
+              <span class="badge badge-ochre">{{row.wins}} wins</span>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Race calendar</div>
+        <p class="small muted" style="margin:0">
+          Rekla season peaks around Pongal (mid-January) in Kangeyam, Vellakoil, Dharapuram, Tiruppur and Udumalpet.
+        </p>
+      </div>
+    </aside>
+  </div>
+</div>

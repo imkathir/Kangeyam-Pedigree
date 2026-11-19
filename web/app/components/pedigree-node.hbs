@@ -1,0 +1,27 @@
+<div class="branch">
+  {{#if @node}}
+    <LinkTo @route="animals.animal" @model={{@node.id}} class="pnode {{if @focus "is-focus"}} {{if @node.is_stub "is-stub"}}" title={{@node.name_en}}>
+      <span class="pn-sex">{{if (eq @node.sex "BULL") "♂ SIRE LINE" "♀ DAM LINE"}}</span>
+      <span class="pn-name">{{@node.name_en}}</span>
+      <span class="pn-ta">{{@node.name_ta}}</span>
+      <span class="pn-meta">
+        <ColorDot @color={{@node.current_color}} />
+        <span>{{@node.color_label.en}}</span>
+        {{#if @node.dob}}<span>· {{@node.dob}}</span>{{/if}}
+      </span>
+      {{#if @node.is_stub}}<span class="badge badge-stub" style="align-self:flex-start">Stub</span>{{/if}}
+    </LinkTo>
+  {{else}}
+    <div class="pnode is-empty">Unknown {{if (eq @side "sire") "sire" "dam"}}</div>
+  {{/if}}
+
+  {{#if @node}}
+    {{#if (or @node.sire @node.dam)}}
+      <div class="connector"></div>
+      <div class="children">
+        <div class="child-row"><PedigreeNode @node={{@node.sire}} @side="sire" /></div>
+        <div class="child-row"><PedigreeNode @node={{@node.dam}} @side="dam" /></div>
+      </div>
+    {{/if}}
+  {{/if}}
+</div>

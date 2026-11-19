@@ -1,0 +1,40 @@
+{{#let @model as |owner|}}
+<div class="stack">
+  <div class="row small muted" style="gap:6px">
+    <LinkTo @route="owners">Breeders</LinkTo>
+    <span>/</span>
+    <span>{{owner.name_en}}</span>
+  </div>
+
+  <div class="card">
+    <div class="between" style="align-items:flex-start">
+      <div>
+        <div class="eyebrow">{{if owner.farm_name "Stud farm / family herd" "Breeder"}}</div>
+        <h1 style="margin:0">{{owner.name_en}}</h1>
+        {{#if owner.name_ta}}<div class="ta muted">{{owner.name_ta}}</div>{{/if}}
+        {{#if owner.farm_name}}<div class="strong" style="margin-top:4px">{{owner.farm_name}}</div>{{/if}}
+      </div>
+      <LinkTo @route="owners.owner.edit" @model={{owner.id}} class="btn btn-ghost btn-sm">Edit profile</LinkTo>
+    </div>
+
+    <div class="detail-grid" style="margin-top:16px">
+      <div class="detail"><div class="k">Village</div><div class="v">{{or owner.village "—"}}</div></div>
+      <div class="detail"><div class="k">District</div><div class="v">{{or owner.district "—"}}</div></div>
+      <div class="detail">
+        <div class="k">Phone</div>
+        <div class="v">
+          {{#if owner.phone}}<a href="tel:{{owner.phone}}">{{owner.phone}}</a>
+          {{else}}{{#if owner.has_private_phone}}<span class="muted small">Kept private by the owner</span>{{else}}<span class="muted">—</span>{{/if}}{{/if}}
+        </div>
+      </div>
+      <div class="detail"><div class="k">Currently keeps</div><div class="v">{{owner.counts.current}} animals</div></div>
+      <div class="detail"><div class="k">Past records</div><div class="v">{{owner.counts.previous}}</div></div>
+      <div class="detail"><div class="k">In directory since</div><div class="v">{{owner.created_at}}</div></div>
+    </div>
+    {{#if owner.notes}}<p class="small muted" style="margin:14px 0 0">{{owner.notes}}</p>{{/if}}
+  </div>
+
+  <AnimalTabsOwner @owner={{owner}} />
+  {{outlet}}
+</div>
+{{/let}}

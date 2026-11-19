@@ -1,0 +1,10 @@
+{{#if this.flash.messages.length}}
+  <div class="toasts" role="status" aria-live="polite">
+    {{#each this.flash.messages as |m|}}
+      <div class="toast {{m.type}}">
+        <span>{{m.text}}</span>
+        <button type="button" {{on "click" (fn this.flash.dismiss m.id)}} aria-label="Dismiss">✕</button>
+      </div>
+    {{/each}}
+  </div>
+{{/if}}

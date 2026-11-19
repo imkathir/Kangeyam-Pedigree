@@ -1,0 +1,286 @@
+<div class="stack">
+  <div class="between">
+    <div>
+      <div class="eyebrow">New registration · புதிய பதிவு</div>
+      <h1 style="margin:0">Register a Kangeyam</h1>
+      <p class="muted small" style="margin:6px 0 0">
+        Two names, a sex and a coat colour are enough to start. Everything else can be filled in later —
+        including parents, which stay unknown (Generation 0) until someone documents them.
+      </p>
+    </div>
+    <LinkTo @route="animals" class="btn btn-ghost btn-sm">Cancel</LinkTo>
+  </div>
+
+  <div class="segmented" role="tablist" style="align-self:flex-start">
+    <button type="button" class={{if (eq this.step 1) "active"}} {{on "click" (fn this.goto 1)}}>1 · Identity</button>
+    <button type="button" class={{if (eq this.step 2) "active"}} {{on "click" (fn this.goto 2)}}>2 · Age &amp; coat</button>
+    <button type="button" class={{if (eq this.step 3) "active"}} {{on "click" (fn this.goto 3)}}>3 · Lineage &amp; owner</button>
+  </div>
+
+  <FormErrors @errors={{this.errors}} @title="Could not save the record" />
+
+  <form {{on "submit" this.save}} class="sidebar-layout">
+    <div class="stack">
+      {{#if (eq this.step 1)}}
+        <fieldset class="fieldset">
+          <legend>Step 1 — Identity</legend>
+
+          <div class="field">
+            <span class="label">Sex <span class="req">*</span></span>
+            <div class="segmented" style="width:100%">
+              <button type="button" class={{if (eq this.sex "BULL") "active"}} style="flex:1" {{on "click" (fn this.pickSex "BULL")}}>♂ Bull (காளை)</button>
+              <button type="button" class={{if (eq this.sex "COW") "active"}} style="flex:1" {{on "click" (fn this.pickSex "COW")}}>♀ Cow (பசு)</button>
+            </div>
+          </div>
+
+          <div class="field-pair">
+            <div class="field">
+              <label for="name_ta">Tamil name <span class="req">*</span></label>
+              <input id="name_ta" type="text" class="ta" value={{this.name_ta}} placeholder="எ.கா. வேல்" autocomplete="off" {{on "input" (fn this.set "name_ta")}}>
+              <div class="hint">தமிழில் பெயர்</div>
+            </div>
+            <div class="field">
+              <label for="name_en">English name / transliteration <span class="req">*</span></label>
+              <input id="name_en" type="text" value={{this.name_en}} placeholder="e.g. Vel" autocomplete="off" {{on "input" (fn this.set "name_en")}}>
+              <div class="hint">Used for search and certificates</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="tag">Ear tag / registration number <span class="muted">(optional)</span></label>
+            <input id="tag" type="text" value={{this.tag_or_reg_no}} placeholder="KGR-2026-001" {{on "input" (fn this.set "tag_or_reg_no")}}>
+            <div class="hint">Must be unique across the registry if you add one.</div>
+          </div>
+        </fieldset>
+
+        <div class="row-wrap">
+          <button type="submit" class="btn btn-primary btn-lg" disabled={{this.saving}}>
+            {{if this.saving "Saving…" "Save now as Generation 0"}}
+          </button>
+          <button type="button" class="btn btn-ghost btn-lg" {{on "click" this.next}}>Continue →</button>
+        </div>
+        <p class="tiny muted">Saving now records the animal with unknown parents. You can link its sire and dam at any time.</p>
+      {{/if}}
+
+      {{#if (eq this.step 2)}}
+        <fieldset class="fieldset">
+          <legend>Step 2 — Age &amp; coat</legend>
+
+          <div class="field-pair">
+            <div class="field">
+              <label for="dob">Date of birth</label>
+              <input id="dob" type="date" value={{this.dob}} {{on "input" (fn this.set "dob")}}>
+              <div class="hint">Leave blank if unknown — use the tooth stage instead.</div>
+            </div>
+            <div class="field">
+              <label for="precision">DOB precision</label>
+              <select id="precision" {{on "change" (fn this.set "dob_precision")}}>
+                {{#each this.precisions as |p|}}
+                  <option value={{p.value}} selected={{eq this.dob_precision p.value}}>{{p.en}} · {{p.ta}}</option>
+                {{/each}}
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="teeth">Dentition stage</label>
+            <select id="teeth" {{on "change" (fn this.set "dentition_stage")}}>
+              <option value="">— Not recorded —</option>
+              {{#each this.dentitions as |d|}}
+                <option value={{d.value}} selected={{eq this.dentition_stage d.value}}>{{d.en}} · {{d.ta}}</option>
+              {{/each}}
+            </select>
+            <div class="hint">Breeders often know age by teeth when the birth date is unknown.</div>
+          </div>
+
+          <hr class="divider">
+
+          <div class="field-pair">
+            <div class="field">
+              <label for="birth_color">Birth coat (calf colour)</label>
+              <select id="birth_color" {{on "change" (fn this.set "birth_color")}}>
+                <option value="">— Not recorded —</option>
+                {{#each this.birthColors as |c|}}
+                  <option value={{c.value}} selected={{eq this.birth_color c.value}}>{{c.ta}} · {{c.en}}</option>
+                {{/each}}
+              </select>
+              <div class="hint">Most Kangeyam calves are born red/fawn and change at ~6 months.</div>
+            </div>
+            <div class="field">
+              <label for="current_color">Current coat colour <span class="req">*</span></label>
+              <select id="current_color" {{on "change" (fn this.set "current_color")}}>
+                {{#each this.colors as |c|}}
+                  <option value={{c.value}} selected={{eq this.current_color c.value}}>{{c.ta}} · {{c.en}}</option>
+                {{/each}}
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="markings">Distinctive markings</label>
+            <textarea id="markings" placeholder="e.g. வெள்ளை நெற்றிப் பொட்டு (forehead star), கருப்பு வால் குஞ்சம், horn curvature…" {{on "input" (fn this.set "distinctive_markings")}}>{{this.distinctive_markings}}</textarea>
+          </div>
+
+          <div class="field-pair">
+            <div class="field">
+              <label for="village">Current village</label>
+              <input id="village" type="text" value={{this.current_village}} placeholder="Kangeyam" {{on "input" (fn this.set "current_village")}}>
+            </div>
+            <div class="field">
+              <label for="district">District</label>
+              <select id="district" {{on "change" (fn this.set "current_district")}}>
+                {{#each this.districts as |d|}}
+                  <option value={{d}} selected={{eq this.current_district d}}>{{d}}</option>
+                {{/each}}
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="row-wrap">
+          <button type="button" class="btn btn-ghost" {{on "click" this.back}}>← Back</button>
+          <button type="button" class="btn btn-primary" {{on "click" this.next}}>Continue →</button>
+          <button type="submit" class="btn btn-ghost" disabled={{this.saving}}>Save now</button>
+        </div>
+      {{/if}}
+
+      {{#if (eq this.step 3)}}
+        <fieldset class="fieldset">
+          <legend>Step 3 — Lineage</legend>
+          <p class="small muted" style="margin-top:0">
+            Do you know the parents? Link an existing registry animal, or create a lightweight
+            <strong>stub ancestor</strong> with just a name and village — it can be completed later.
+          </p>
+
+          <div class="field">
+            <label>Sire (father) — must be a bull</label>
+            <AnimalSearch @sex="BULL" @selected={{this.sire}} @onSelect={{fn this.assign "sire"}} @placeholder="Search bulls by name or village" />
+            <div class="row" style="margin-top:6px">
+              <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.openStub "sire")}}>+ Add stub sire (name &amp; village only)</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Dam (mother) — must be a cow</label>
+            <AnimalSearch @sex="COW" @selected={{this.dam}} @onSelect={{fn this.assign "dam"}} @placeholder="Search cows by name or village" />
+            <div class="row" style="margin-top:6px">
+              <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.openStub "dam")}}>+ Add stub dam (name &amp; village only)</button>
+            </div>
+          </div>
+
+          {{#if this.stubFor}}
+            <div class="card card-tight" style="background:var(--paper-2)">
+              <div class="eyebrow">New stub {{this.stubFor}}</div>
+              <div class="field-pair">
+                <div class="field">
+                  <label>English name <span class="req">*</span></label>
+                  <input type="text" value={{this.stubNameEn}} placeholder="e.g. Kalingan" {{on "input" (fn this.set "stubNameEn")}}>
+                </div>
+                <div class="field">
+                  <label>Tamil name</label>
+                  <input type="text" class="ta" value={{this.stubNameTa}} placeholder="எ.கா. காளிங்கன்" {{on "input" (fn this.set "stubNameTa")}}>
+                </div>
+              </div>
+              <div class="field">
+                <label>Village</label>
+                <input type="text" value={{this.stubVillage}} placeholder="Vellakoil" {{on "input" (fn this.set "stubVillage")}}>
+              </div>
+              <div class="row-wrap">
+                <button type="button" class="btn btn-primary btn-sm" disabled={{this.creatingStub}} {{on "click" this.createStub}}>
+                  {{if this.creatingStub "Creating…" "Create &amp; link stub"}}
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" {{on "click" this.cancelStub}}>Cancel</button>
+              </div>
+            </div>
+          {{/if}}
+
+          {{#if (or this.sire this.dam)}}
+            <div class="notice notice-green small">
+              Pedigree preview:
+              {{#if this.sire}}sire <strong>{{this.sire.name_en}}</strong> ({{this.sire.documented_generations}} documented generations){{/if}}
+              {{#if (and this.sire this.dam)}} · {{/if}}
+              {{#if this.dam}}dam <strong>{{this.dam.name_en}}</strong> ({{this.dam.documented_generations}} documented generations){{/if}}
+            </div>
+          {{/if}}
+        </fieldset>
+
+        <fieldset class="fieldset">
+          <legend>Owner / breeder</legend>
+          <div class="field">
+            <span class="label">How would you like to record the owner?</span>
+            <div class="segmented">
+              <button type="button" class={{if (eq this.ownerMode "existing") "active"}} {{on "click" (fn this.set "ownerMode" "existing")}}>Choose existing</button>
+              <button type="button" class={{if (eq this.ownerMode "new") "active"}} {{on "click" (fn this.set "ownerMode" "new")}}>Add new breeder</button>
+              <button type="button" class={{if (eq this.ownerMode "none") "active"}} {{on "click" (fn this.set "ownerMode" "none")}}>Unknown / skip</button>
+            </div>
+          </div>
+
+          {{#if (eq this.ownerMode "existing")}}
+            <div class="field">
+              <label for="owner_id">Breeder / farm</label>
+              <select id="owner_id" {{on "change" (fn this.set "owner_id")}}>
+                <option value="">— Select an owner —</option>
+                {{#each @model.owners as |o|}}
+                  <option value={{o.id}} selected={{eq this.owner_id (concat "" o.id)}}>{{o.name_en}}{{#if o.farm_name}} · {{o.farm_name}}{{/if}}{{#if o.village}} ({{o.village}}){{/if}}</option>
+                {{/each}}
+              </select>
+              <div class="hint">No owner found? <LinkTo @route="owners.new">Create a breeder profile</LinkTo>.</div>
+            </div>
+          {{/if}}
+
+          {{#if (eq this.ownerMode "new")}}
+            <div class="field-pair">
+              <div class="field">
+                <label>Owner name (English) <span class="req">*</span></label>
+                <input type="text" value={{this.owner.name_en}} placeholder="Murugesan" {{on "input" (fn this.setOwner "name_en")}}>
+              </div>
+              <div class="field">
+                <label>Owner name (Tamil)</label>
+                <input type="text" class="ta" value={{this.owner.name_ta}} placeholder="முருகேசன்" {{on "input" (fn this.setOwner "name_ta")}}>
+              </div>
+            </div>
+            <div class="field-pair">
+              <div class="field">
+                <label>Farm / family title</label>
+                <input type="text" value={{this.owner.farm_name}} placeholder="Thambi Farms" {{on "input" (fn this.setOwner "farm_name")}}>
+              </div>
+              <div class="field">
+                <label>Phone / WhatsApp</label>
+                <input type="tel" value={{this.owner.phone}} placeholder="+91 …" {{on "input" (fn this.setOwner "phone")}}>
+              </div>
+            </div>
+            <label class="checkline">
+              <input type="checkbox" checked={{this.owner.is_contact_public}} {{on "change" (fn this.setOwner "is_contact_public")}}>
+              <span>Show this phone number publicly on owner and animal pages.</span>
+            </label>
+          {{/if}}
+        </fieldset>
+
+        <div class="row-wrap">
+          <button type="button" class="btn btn-ghost" {{on "click" this.back}}>← Back</button>
+          <button type="submit" class="btn btn-primary btn-lg" disabled={{this.saving}}>
+            {{if this.saving "Saving…" "Register animal"}}
+          </button>
+        </div>
+      {{/if}}
+    </div>
+
+    <aside class="card" style="position:sticky;top:78px">
+      <div class="eyebrow">Preview</div>
+      <h3 style="margin-bottom:2px">{{this.summaryName}}</h3>
+      <div class="ta muted small">{{this.name_ta}}</div>
+      <hr class="divider" style="margin:12px 0">
+      <div class="kv-list">
+        <div class="kv"><span class="k">Sex</span><span>{{if (eq this.sex "BULL") "Bull (காளை)" "Cow (பசு)"}}</span></div>
+        <div class="kv"><span class="k">Coat</span><span class="row" style="gap:6px"><ColorDot @color={{this.current_color}} /> {{this.current_color}}</span></div>
+        <div class="kv"><span class="k">Sire</span><span>{{or this.sire.name_en "Unknown (Gen 0)"}}</span></div>
+        <div class="kv"><span class="k">Dam</span><span>{{or this.dam.name_en "Unknown (Gen 0)"}}</span></div>
+        <div class="kv"><span class="k">Village</span><span>{{or this.current_village "—"}}</span></div>
+      </div>
+      <div class="notice small" style="margin-top:14px">
+        Generation is calculated automatically from the deepest documented parent chain.
+        With unknown parents this animal starts at <strong>Generation 0</strong>.
+      </div>
+    </aside>
+  </form>
+</div>

@@ -1,0 +1,8 @@
+{{#if this.hasErrors}}
+  <div class="error-box" role="alert">
+    <strong>{{or @title "Please check the following"}}</strong>
+    <ul>
+      {{#each this.list as |e|}}<li>{{e}}</li>{{/each}}
+    </ul>
+  </div>
+{{/if}}

@@ -1,0 +1,62 @@
+<div class="stack">
+  <div class="between">
+    <div>
+      <div class="eyebrow">Directory · இனப்பெருக்குநர்கள்</div>
+      <h1 style="margin:0">Breeders, farmers &amp; stud farms</h1>
+      <p class="muted small" style="margin:6px 0 0">
+        One breeder can be linked to any number of animals — contact details stay private unless the owner opts in.
+      </p>
+    </div>
+    <LinkTo @route="owners.new" class="btn btn-primary">+ Add breeder</LinkTo>
+  </div>
+
+  <div class="filters">
+    <div class="grid" style="grid-template-columns:1fr">
+      <div class="search-input">
+        <span class="icon" aria-hidden="true">🔍</span>
+        <input type="text" value={{this.q}} placeholder="Search name, farm, village…" {{on "input" this.onSearch}} aria-label="Search owners">
+      </div>
+      <select {{on "change" this.setDistrict}} aria-label="District">
+        <option value="">All districts</option>
+        {{#each this.districts as |d|}}
+          <option value={{d}} selected={{eq this.district d}}>{{d}}</option>
+        {{/each}}
+      </select>
+    </div>
+  </div>
+
+  {{#if this.model.data.length}}
+    <div class="grid grid-auto">
+      {{#each this.model.data as |o|}}
+        <LinkTo @route="owners.owner" @model={{o.id}} class="card" style="color:inherit;display:flex;flex-direction:column;gap:6px">
+          <div class="between" style="align-items:flex-start">
+            <div>
+              <h3 style="margin:0">{{o.name_en}}</h3>
+              {{#if o.name_ta}}<div class="ta muted small">{{o.name_ta}}</div>{{/if}}
+              {{#if o.farm_name}}<div class="small">{{o.farm_name}}</div>{{/if}}
+            </div>
+            <span class="badge badge-gen">{{o.current_animals}} head</span>
+          </div>
+          <div class="small muted">
+            {{or o.village "—"}}{{#if o.district}}, {{o.district}}{{/if}}
+          </div>
+          <div class="row" style="gap:8px;margin-top:auto">
+            {{#if o.phone}}
+              <span class="badge badge-live">📞 {{o.phone}}</span>
+            {{else if o.has_private_phone}}
+              <span class="badge badge-muted">📞 private</span>
+            {{else}}
+              <span class="badge badge-muted">no phone</span>
+            {{/if}}
+            <span class="tiny muted">{{o.total_links}} ownership record{{if (eq o.total_links 1) "" "s"}}</span>
+          </div>
+        </LinkTo>
+      {{/each}}
+    </div>
+    <p class="small muted">{{this.model.meta.total}} owner{{if (eq this.model.meta.total 1) "" "s"}} in the directory.</p>
+  {{else}}
+    <EmptyState @icon="🤝" @title="No breeders match your search" @text="Try another spelling, or add this breeder to the directory.">
+      <LinkTo @route="owners.new" class="btn btn-primary">Add a breeder</LinkTo>
+    </EmptyState>
+  {{/if}}
+</div>

@@ -1,0 +1,6 @@
+<div class="empty">
+  <div class="big" aria-hidden="true">{{or @icon "🐄"}}</div>
+  <p class="strong" style="color: var(--ink)">{{@title}}</p>
+  {{#if @text}}<p class="small muted" style="margin:0">{{@text}}</p>{{/if}}
+  {{#if (has-block)}}<div style="margin-top:14px">{{yield}}</div>{{/if}}
+</div>

@@ -363,8 +363,10 @@ shown as the secondary line.
 **Photos.** Every animal carries an optional gallery of up to **10** images
 (`MAX_MEDIA_PER_ANIMAL` in `server/src/lib.js` — one number to raise). The data model is
 one `animal_media` row per image with no fixed columns, so scaling to *n* images needs no
-schema change, only that constant. Images are added by URL or uploaded from the device
-(max 3.5 MB, stored inline with the record).
+schema change, only that constant. Owners attach photos **while registering** (step 1 of the
+wizard) or later from the gallery — files are resized on-device first (≤1600 px JPEG) because
+uploads travel inside the JSON request, which Vercel caps at 4.5 MB. The gallery no longer
+offers free-text image URLs; the API still accepts `media_url` for programmatic clients.
 
 **Hero.** The dashboard hero crossfades through six photographs in `web/public/hero/`
 every 4 seconds (paused for visitors who prefer reduced motion).

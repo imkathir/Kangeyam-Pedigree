@@ -3,11 +3,21 @@ import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 import { service } from '@ember/service';
 import { COLORS_LIST, BIRTH_COLORS, DOB_PRECISION, DENTITION, DISTRICTS } from 'web/utils/enums';
+import { compressImage, isImageFile } from 'web/utils/compress-image';
 
 const COLORS = COLORS_LIST;
 const BIRTHS = Object.entries(BIRTH_COLORS).map(([value, m]) => ({ value, ...m }));
 const PRECISIONS = Object.entries(DOB_PRECISION).map(([value, m]) => ({ value, ...m }));
 const TEETH = Object.entries(DENTITION).map(([value, m]) => ({ value, ...m }));
+
+function readPlainDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('Could not read the file.'));
+    reader.readAsDataURL(file);
+  });
+}
 
 export default class AnimalsNewController extends Controller {
   @service api;
@@ -28,6 +38,7 @@ export default class AnimalsNewController extends Controller {
   @tracked sex = 'BULL';
   @tracked name = '';
   @tracked tag_or_reg_no = '';
+  @tracked photos = []; // [{ media_url: dataURL }] — attached to the record on save
 
   @tracked dob = '';
   @tracked dob_precision = 'EXACT';
@@ -72,6 +83,37 @@ export default class AnimalsNewController extends Controller {
     this.owner = { ...this.owner, [key]: event.target.type === 'checkbox' ? event.target.checked : event.target.value };
   }
 
+  /** Attach photos while registering — the owner usually has them at hand. */
+  @action
+  async addPhotos(event) {
+    const files = Array.from(event.target.files || []);
+    event.target.value = ''; // allow re-picking the same file later
+    for (const file of files) {
+      if (this.photos.length >= 10) {
+        this.flash.error('A maximum of 10 photos per animal.');
+        break;
+      }
+      try {
+        const media_url = isImageFile(file)
+          ? await compressImage(file, { maxDim: 1600, maxBytes: 400000 })
+          : await readPlainDataURL(file);
+        // keep the whole JSON body well under the 4.5 MB request cap
+        if (this.photos.reduce((n, p) => n + p.media_url.length, 0) + media_url.length > 4_200_000) {
+          this.flash.error('Total photo size is too large — remove a few and try again.');
+          break;
+        }
+        this.photos = [...this.photos, { media_url, media_type: 'PHOTO' }];
+      } catch (e) {
+        this.flash.error(e.message || 'That file could not be read.');
+      }
+    }
+  }
+
+  @action
+  removePhoto(index) {
+    this.photos = this.photos.filter((_, i) => i !== index);
+  }
+
   @action
   pickSex(value) {
     this.sex = value;
@@ -110,6 +152,7 @@ export default class AnimalsNewController extends Controller {
       current_color: this.current_color,
       dob_precision: this.dob_precision,
     };
+    if (this.photos.length) payload.media = this.photos;
     if (this.tag_or_reg_no.trim()) payload.tag_or_reg_no = this.tag_or_reg_no.trim();
     if (this.dob) payload.dob = this.dob;
     if (this.dentition_stage) payload.dentition_stage = this.dentition_stage;
@@ -174,6 +217,7 @@ export default class AnimalsNewController extends Controller {
     this.errors = [];
     this.step = 1;
     this.name = '';
+    this.photos = [];
     this.tag_or_reg_no = '';
     this.distinctive_markings = '';
     this.sire = null;

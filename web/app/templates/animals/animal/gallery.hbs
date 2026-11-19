@@ -18,13 +18,9 @@
       <FormErrors @errors={{this.errors}} />
       <div class="form-grid">
         <div class="field span-2">
-          <label for="url">{{tr "Image / video URL"}}</label>
-          <input id="url" type="text" value={{this.media_url}} placeholder={{tr "https://… or pick a sample below"}} {{on "input" (fn this.set "media_url")}}>
-          <div class="hint">{{tr "You can also upload a file from this device (max 3.5 MB) — it is stored inline with the record."}}</div>
-        </div>
-        <div class="field">
           <label for="file">{{tr "Upload from device"}}</label>
           <input id="file" type="file" accept="image/*,video/*" {{on "change" this.uploadFile}}>
+          <div class="hint">{{tr "Photos are resized on your device before upload (max 3.5 MB per file)."}}</div>
         </div>
         <div class="field">
           <label for="stage">{{tr "Life stage"}}</label>
@@ -42,17 +38,6 @@
           <input type="checkbox" checked={{this.is_primary}} {{on "change" (fn this.set "is_primary")}}>
           <span>{{tr "Use as the primary profile photo"}}</span>
         </label>
-      </div>
-
-      <div class="field">
-        <span class="label">{{tr "Or pick a sample image"}}</span>
-        <div class="row-wrap">
-          {{#each this.samples as |s|}}
-            <button type="button" style="border:2px solid {{if (eq this.media_url s) "var(--terra)" "transparent"}};padding:0;border-radius:8px;background:none;cursor:pointer" {{on "click" (fn this.useSample s)}}>
-              <img src={{s}} alt={{tr "Sample"}} style="width:76px;height:56px;object-fit:cover;border-radius:6px">
-            </button>
-          {{/each}}
-        </div>
       </div>
 
       <div class="form-actions">

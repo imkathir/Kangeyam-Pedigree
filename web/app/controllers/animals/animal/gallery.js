@@ -3,18 +3,7 @@ import { tracked } from '@glimmer/tracking';
 import { action } from '@ember/object';
 import { service } from '@ember/service';
 import { LIFE_STAGE } from 'web/utils/enums';
-
-const SAMPLES = [
-  '/media/bull-portrait.jpg',
-  '/media/bull-herd.jpg',
-  '/media/cow-portrait.jpg',
-  '/media/cow-grazing.jpg',
-  '/media/calf.jpg',
-  '/media/rekla.jpg',
-  '/media/jallikattu.jpg',
-  '/media/show.jpg',
-  '/media/farm.jpg',
-];
+import { compressImage, isImageFile } from 'web/utils/compress-image';
 
 export default class AnimalsAnimalGalleryController extends Controller {
   @service api;
@@ -22,7 +11,6 @@ export default class AnimalsAnimalGalleryController extends Controller {
   @service router;
 
   stages = Object.entries(LIFE_STAGE).map(([value, m]) => ({ value, ...m }));
-  samples = SAMPLES;
 
   @tracked filter = '';
   @tracked showForm = false;
@@ -69,26 +57,31 @@ export default class AnimalsAnimalGalleryController extends Controller {
   }
 
   @action
-  useSample(url) {
-    this.media_url = url;
-    this.showForm = true;
-  }
-
-  @action
   async uploadFile(event) {
     const file = event.target.files?.[0];
+    event.target.value = '';
     if (!file) return;
-    if (file.size > 3.5 * 1024 * 1024) {
-      this.flash.error('Please choose an image under 3.5 MB.');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.media_url = String(reader.result);
+    try {
+      if (isImageFile(file)) {
+        // shrink first — uploads ride inside JSON and Vercel caps requests at 4.5 MB
+        this.media_url = await compressImage(file, { maxDim: 1600, maxBytes: 600000 });
+      } else {
+        if (file.size > 3.5 * 1024 * 1024) {
+          this.flash.error('Please choose an image under 3.5 MB.');
+          return;
+        }
+        this.media_url = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error('Could not read the file.'));
+          reader.readAsDataURL(file);
+        });
+      }
       this.showForm = true;
       this.flash.success('Image loaded — add a caption and save.');
-    };
-    reader.readAsDataURL(file);
+    } catch (e) {
+      this.flash.error(e.message || 'That file could not be read.');
+    }
   }
 
   @action
@@ -101,7 +94,7 @@ export default class AnimalsAnimalGalleryController extends Controller {
   async save(event) {
     event.preventDefault();
     if (!String(this.media_url).trim()) {
-      this.errors = ['Provide an image URL, upload a photo, or pick a sample.'];
+      this.errors = ['Choose a photo from this device.'];
       return;
     }
     this.saving = true;

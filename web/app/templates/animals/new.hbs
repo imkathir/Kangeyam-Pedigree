@@ -59,6 +59,25 @@
           </div>
         </fieldset>
 
+        <fieldset class="fieldset">
+          <legend>{{tr "Photos (optional)"}}</legend>
+          <div class="field">
+            <label for="wiz-photos">{{tr "Photos of this animal"}}</label>
+            <input id="wiz-photos" type="file" accept="image/*" multiple {{on "change" this.addPhotos}}>
+            <div class="hint">{{tr "Up to 10 photos — resized on your device before sending, so small phone photos are fine."}}</div>
+          </div>
+          {{#if this.photos.length}}
+            <div class="photo-strip">
+              {{#each this.photos as |p i|}}
+                <div class="photo-thumb">
+                  <img src={{p.media_url}} alt="">
+                  <button type="button" class="photo-x" {{on "click" (fn this.removePhoto i)}} aria-label={{tr "Remove"}}>✕</button>
+                </div>
+              {{/each}}
+            </div>
+          {{/if}}
+        </fieldset>
+
         <div class="row-wrap">
           <button type="submit" class="btn btn-primary btn-lg" disabled={{this.saving}}>
             {{if this.saving (tr "Saving…") (tr "Save now as Generation 0")}}

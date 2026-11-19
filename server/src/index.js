@@ -357,10 +357,13 @@ api.post('/animals', (req, res) => {
     }
     for (const m of req.body.media) {
       if (!m || !m.media_url) continue;
+      // first photo of the record becomes the primary profile image
+      const isPrimary = created.media.length === 0 || m.is_primary ? 1 : 0;
+      if (isPrimary) db.prepare('UPDATE animal_media SET is_primary = 0 WHERE animal_id = ?').run(id);
       db.prepare(
         `INSERT INTO animal_media (animal_id, media_url, media_type, life_stage, caption, is_primary)
          VALUES (?, ?, ?, ?, ?, ?)`
-      ).run(id, m.media_url, m.media_type || 'PHOTO', m.life_stage || null, m.caption || null, m.is_primary ? 1 : 0);
+      ).run(id, m.media_url, m.media_type || 'PHOTO', m.life_stage || null, m.caption || null, isPrimary);
       created.media.push(m.media_url);
     }
   }

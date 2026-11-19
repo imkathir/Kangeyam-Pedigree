@@ -763,7 +763,13 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ errors: [{ status: 500, title: 'Internal Server Error', detail: err.message }] });
 });
 
-/* ── static: Ember build + uploaded media ───────────────────────────────── */
+/* ── static: Ember build + uploaded media ───────────────────────────────────
+ * Local dev: this process serves the compiled SPA and the photos, so everything
+ * runs on one origin (http://localhost:4000).
+ * Vercel: the deployment uses two services, so the `web` service owns `/` and its
+ * `/assets`, `/media`, `/fonts`; only `/api/*` is routed here and these mounts stay
+ * dormant. Nothing in this file needs an internal service URL.
+ * ────────────────────────────────────────────────────────────────────────── */
 const WEB_DIST = path.join(__dirname, '..', '..', 'web', 'dist');
 const MEDIA_DIRS = [
   path.join(__dirname, '..', '..', 'web', 'public', 'media'),

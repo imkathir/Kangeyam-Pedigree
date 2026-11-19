@@ -22,7 +22,7 @@ kangeyam/
 │   │   ├── lib.js          Enums, pedigree maths, Wright's F, serialisation, validation
 │   │   ├── schema.sql      Full relational schema
 │   │   ├── seed.js         29 animals, 8 owners, 27 achievements, real Kongu bloodlines
-│   │   └── db.js           better-sqlite3 connection + auto-seed
+│   │   └── db.js           libSQL (SQLite/Turso) connection + auto-seed
 │   ├── public/media/       9 photographs of Kangeyam cattle, Rekla, Jallikattu
 │   └── data/kangeyam.db    SQLite database (created + seeded automatically)
 └── web/                    Ember.js 5.12 (Octane) application
@@ -57,9 +57,17 @@ commands again if the sandbox was recycled.)*
 
 ### Deploying to Vercel
 
-The repo is already wired for Vercel: `api/index.js` exports the entire Express app as one
-Node function, and `vercel.json` builds the Ember app into `web/dist`, routes `/api/*` to the
-function and keeps `/assets`, `/media`, `/fonts` out of the SPA fallback.
+The repo deploys as **one Vercel project with two services** (`vercel.json` at the root):
+
+| Service | Root | Framework | Public path |
+| --- | --- | --- | --- |
+| `api` | `server/` | `express` (entrypoint `src/index.js`) | `/api/*` |
+| `web` | `web/` | `ember` (build `npm run build`, output `dist`) | everything else |
+
+`web` is a static Ember build, so it does not call `api` from Node — the **browser** calls
+`/api/v1/*` on the same origin, which the top-level rewrite sends to the `api` service. That is
+why there are no service bindings: nothing in either service performs a server-side call to the
+other. The Ember client's base URL is already relative (`web/app/services/api.js` → `/api/v1`).
 
 ```bash
 npx vercel link --yes            # project: kangeyam-pedigree (or import the repo in the dashboard)
@@ -69,9 +77,10 @@ npx vercel --prod                # deploy
 
 | Setting | Value |
 | --- | --- |
-| Install command | `npm install --prefix server --omit=dev && npm install --prefix web` |
-| Build command | `npm --prefix web run build` |
-| Output directory | `web/dist` |
+| Framework preset (project) | *Other* — services come from `vercel.json` |
+| Install command | per service, default `npm install` in `server/` and `web/` |
+| Build command | `web`: `npm run build` (`ember build --environment=production`) |
+| Output directory | `web`: `dist` |
 | Node.js | 22.x |
 
 **Persistence.** Serverless functions have no writable disk, so `server/src/db.js` speaks the

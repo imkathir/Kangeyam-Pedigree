@@ -123,6 +123,21 @@ function submitterFields(body, isAdmin) {
   };
 }
 
+/**
+ * Registry number for an approved animal — `Kangeyam-Bull-0001`, `Kangeyam-Cow-0001`,
+ * each sex counting independently. Issued here, in the background: never shown on the
+ * creation form and never taken from the client. One atomic upsert per sex, so
+ * concurrent approvals cannot collide and deleted records never free their number.
+ */
+function nextRegNo(sex) {
+  const row = db.prepare(
+    `INSERT INTO registry_counters (sex, last_number) VALUES (?, 1)
+       ON CONFLICT (sex) DO UPDATE SET last_number = registry_counters.last_number + 1
+     RETURNING last_number`
+  ).get(sex);
+  return `Kangeyam-${sex === 'COW' ? 'Cow' : 'Bull'}-${String(row.last_number).padStart(4, '0')}`;
+}
+
 /* ── helpers ────────────────────────────────────────────────────────────── */
 function paginate(req, rows) {
   const page = Math.max(1, Number(req.query.page) || 1);
@@ -327,12 +342,13 @@ api.post('/animals', (req, res) => {
   const body = req.body || {};
   const data = validateAnimalPayload(body, { partial: false });
 
-  if (data.tag_or_reg_no) {
-    const dupe = db.prepare('SELECT id FROM animals WHERE tag_or_reg_no = ?').get(data.tag_or_reg_no);
-    if (dupe) throw new ApiError(409, `Tag ${data.tag_or_reg_no} is already used by animal #${dupe.id}`);
-  }
-
+  // The registry number is never client-assigned: drop any submitted tag —
+  // numbers are issued in the background, only once the record is approved.
+  delete data.tag_or_reg_no;
   Object.assign(data, submitterFields(body, req.isAdmin));
+  if (data.review_status === 'APPROVED' && !data.is_stub) {
+    data.tag_or_reg_no = nextRegNo(data.sex);
+  }
 
   const cols = Object.keys(data);
   const sql = `INSERT INTO animals (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')}) RETURNING id`;
@@ -991,10 +1007,18 @@ api.post('/admin/animals/:id/review', (req, res) => {
   const status = action === 'approve' ? 'APPROVED' : action === 'reject' ? 'REJECTED' : 'PENDING';
   db.prepare('UPDATE animals SET review_status = ?, reviewed_at = ?, review_note = ? WHERE id = ?')
     .run(status, nowIso(), note, row.id);
+  // First approval issues the background registry number; re-approvals and
+  // reject/pending cycles keep whatever was already issued.
+  let regNo = row.tag_or_reg_no;
+  if (status === 'APPROVED' && !regNo && !row.is_stub) {
+    regNo = nextRegNo(row.sex);
+    db.prepare('UPDATE animals SET tag_or_reg_no = ? WHERE id = ? AND tag_or_reg_no IS NULL')
+      .run(regNo, row.id);
+  }
   clearCaches();
   const approvedOwners = status === 'APPROVED' ? publishLinkedOwners(row.id, note) : 0;
   res.json({
-    data: { id: row.id, review_status: status, reviewed_at: nowIso(), approved_owners: approvedOwners },
+    data: { id: row.id, review_status: status, reviewed_at: nowIso(), approved_owners: approvedOwners, tag_or_reg_no: regNo },
     meta: {
       message: status === 'APPROVED'
         ? `Published.${approvedOwners ? ` ${approvedOwners} linked owner record(s) approved too.` : ''}`

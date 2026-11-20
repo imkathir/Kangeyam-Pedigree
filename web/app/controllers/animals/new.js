@@ -36,7 +36,6 @@ export default class AnimalsNewController extends Controller {
 
   @tracked sex = 'BULL';
   @tracked name = '';
-  @tracked tag_or_reg_no = '';
   @tracked photos = []; // [{ media_url: dataURL }] — attached to the record on save
 
   @tracked dob = '';
@@ -131,7 +130,6 @@ export default class AnimalsNewController extends Controller {
       dob_precision: this.dob_precision,
     };
     if (this.photos.length) payload.media = this.photos;
-    if (this.tag_or_reg_no.trim()) payload.tag_or_reg_no = this.tag_or_reg_no.trim();
     if (this.dob) payload.dob = this.dob;
     if (this.dentition_stage) payload.dentition_stage = this.dentition_stage;
     if (this.birth_color) payload.birth_color = this.birth_color;
@@ -195,7 +193,6 @@ export default class AnimalsNewController extends Controller {
     this.errors = [];
     this.name = '';
     this.photos = [];
-    this.tag_or_reg_no = '';
     this.distinctive_markings = '';
     this.sire = null;
     this.dam = null;

@@ -21,16 +21,16 @@ confirmation, the review queue (desktop + mobile) and the locked admin page.
 
 ```
 kangeyam/
-├── server/                 Node + Express + SQLite REST API (also serves the built UI)
+├── server/                 Node + Express + PostgreSQL REST API (also serves the built UI)
 │   ├── src/
 │   │   ├── index.js        All REST routes under /api/v1
 │   │   ├── lib.js          Enums, pedigree maths, Wright's F, serialisation, validation
 │   │   ├── schema.sql      Full relational schema
 │   │   ├── seed.js         optional demo herd (29 animals, 8 owners, 27 achievements)
 │   │   ├── reset.js        `npm run db:wipe` / `db:reset` — empty or re-seed the registry
-│   │   └── db.js           libSQL (SQLite/Turso) connection, migrations, optional seeding
+│   │   ├── db.js           PostgreSQL connection (sync worker bridge), migrations, seeding
+│   │   └── pg-worker.js    runs every pg query off the main thread
 │   ├── public/media/       9 photographs of Kangeyam cattle, Rekla, Jallikattu
-│   └── data/kangeyam.db    SQLite database (created empty on first run)
 └── web/                    Ember.js 5.12 (Octane) application
     ├── app/router.js       Bookmarkable routes for every entity, incl. the unlinked /admin
     ├── app/services/api.js Native-fetch API service layer
@@ -108,24 +108,21 @@ npx vercel --prod                # deploy
 | Output directory | `web`: `dist` |
 | Node.js | 22.x |
 
-**Persistence.** Serverless functions have no writable disk, so `server/src/db.js` speaks the
-better-sqlite3-compatible libSQL API: point it at a hosted database and the same synchronous
-queries run over HTTPS.
+**Persistence.** Serverless functions have no writable disk, so production runs against a
+hosted PostgreSQL database (**Neon**). `server/src/db.js` requires `DATABASE_URL`; queries are
+shipped to a worker thread (`pg-worker.js`) so the app keeps its synchronous query style.
 
 ```
-TURSO_DATABASE_URL=libsql://<db>-<org>.turso.io
-TURSO_AUTH_TOKEN=<token>
+DATABASE_URL=postgresql://<user>:<password>@<host>/<db>?sslmode=require
 WRITE_API_KEY=<long random string>     # see "Write access"; without it the deployment is read-only
 ```
 
-Without those two variables the function falls back to `/tmp` and seeds the demo registry on
-each cold start — every page works, but edits vanish after the instance is recycled. To create
-the hosted database: `turso db create kangeyam`, `turso db show kangeyam --url`,
-`turso db tokens create kangeyam`, then load the schema + seed once with
-`turso db shell kangeyam < server/src/schema.sql` (or start the deployed API and let the first
-request seed an empty database).
+There is deliberately **no ephemeral fallback**: without `DATABASE_URL` the API refuses to
+boot, because a throwaway database is exactly what made records vanish on every deploy. Create
+a Neon project (neon.tech), paste its pooled connection string as `DATABASE_URL` in the Vercel
+project settings (production + preview), and the schema creates itself on the next boot.
 
-`GET /api/v1/health` reports `{"status":"ok","animals":29,"database":"turso|file|ephemeral"}`
+`GET /api/v1/health` reports `{"status":"ok","animals":29,"database":"neon|postgres"}`
 so you can confirm which mode a deployment is in.
 
 ---

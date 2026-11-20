@@ -1,113 +1,205 @@
 'use strict';
 
+/**
+ * Database layer — PostgreSQL (Neon in production, a local cluster in dev/test).
+ *
+ * The Express app was written against a synchronous SQLite-style API
+ * (`db.prepare(sql).get/all/run(...)`). PostgreSQL drivers are asynchronous, so
+ * queries are shipped to a worker thread (pg-worker.js) over SharedArrayBuffer and
+ * the main thread blocks on Atomics.wait until the answer arrives. Every call site
+ * in the app stays synchronous; the driver stays fully async inside the worker.
+ *
+ * DATABASE_URL is REQUIRED — there is deliberately no ephemeral fallback, because
+ * a throwaway database is how production data kept disappearing on every deploy.
+ */
+
+const { Worker } = require('worker_threads');
 const fs = require('fs');
 const path = require('path');
 
+const DATABASE_URL = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || null;
+if (!DATABASE_URL) {
+  throw new Error(
+    'DATABASE_URL is required (postgresql://…). Production should use a persistent ' +
+    'Neon database; locally run a PostgreSQL cluster and point DATABASE_URL at it. ' +
+    'There is no ephemeral fallback on purpose — data must survive deploys.'
+  );
+}
+
+// Shared-memory buffers: 16 MB each covers the largest allowed photo payloads
+// (~4.2 MB of base64) with room to spare.
+const BUFFER_BYTES = 16 * 1024 * 1024;
+const stateBuf = new Int32Array(new SharedArrayBuffer(16));
+const reqBuf = new Uint8Array(new SharedArrayBuffer(BUFFER_BYTES));
+const respBuf = new Uint8Array(new SharedArrayBuffer(BUFFER_BYTES));
+
+const isNeon = /neon\.tech|sslmode=require/i.test(DATABASE_URL);
+const worker = new Worker(path.join(__dirname, 'pg-worker.js'), {
+  workerData: {
+    connectionString: DATABASE_URL,
+    ssl: isNeon ? { rejectUnauthorized: true } : undefined,
+    state: stateBuf.buffer,
+    request: reqBuf.buffer,
+    response: respBuf.buffer,
+    max: 4,
+  },
+  // Don't keep the process alive just because the worker is idling in Atomics.wait.
+  unref: true,
+});
+let workerDead = false;
+worker.on('error', () => { workerDead = true; });
+worker.on('exit', () => {
+  if (!workerDead) workerDead = true;
+  // Release a main thread that is blocked waiting for a response.
+  Atomics.store(stateBuf, 1, Atomics.load(stateBuf, 0));
+  Atomics.notify(stateBuf, 1);
+});
+
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
 /**
- * Database layer.
- *
- * Local development   → a SQLite file next to the server (libSQL's better-sqlite3
- *                       compatible sync API, so every query in the app stays synchronous).
- * Vercel / serverless → set TURSO_DATABASE_URL (+ TURSO_AUTH_TOKEN) and the exact same
- *                       code talks to a hosted libSQL (Turso) database over HTTPS.
- * Vercel without env → falls back to /tmp, which is writable but ephemeral: perfect for a
- *                       demo, not for real records.
+ * Translate SQLite-style placeholders to PostgreSQL $n:
+ *  - `?` positional (spread args)
+ *  - `@name` named (single object arg, better-sqlite3 compatible)
+ * Both are quote-aware so `?`/`@` inside string literals stay untouched.
  */
+function bind(sql, args) {
+  const named =
+    args.length === 1 &&
+    args[0] !== null &&
+    typeof args[0] === 'object' &&
+    !Array.isArray(args[0]) &&
+    Object.getPrototypeOf(args[0]) === Object.prototype &&
+    /@[A-Za-z_]/.test(sql);
+  const obj = named ? args[0] : null;
+  const positional = named ? [] : args;
+  let posIdx = 0;
+  const namedIdx = new Map();
+  const params = [];
+  let out = '';
+  let inString = false;
+  for (let i = 0; i < sql.length; i++) {
+    const c = sql[i];
+    if (c === "'") {
+      // '' inside a literal toggles twice and stays inside — correct either way.
+      inString = !inString;
+      out += c;
+      continue;
+    }
+    if (!inString && c === '?') {
+      params.push(positional[posIdx++]);
+      out += '$' + params.length;
+      continue;
+    }
+    if (!inString && c === '@') {
+      let j = i + 1;
+      while (j < sql.length && /[A-Za-z0-9_]/.test(sql[j])) j++;
+      const name = sql.slice(i + 1, j);
+      if (!namedIdx.has(name)) {
+        namedIdx.set(name, params.length);
+        params.push(obj && obj[name] !== undefined ? obj[name] : null);
+      }
+      out += '$' + (namedIdx.get(name) + 1);
+      i = j - 1;
+      continue;
+    }
+    out += c;
+  }
+  return { sql: out, params: params.map((p) => (p === undefined ? null : p)) };
+}
 
-const IS_SERVERLESS = Boolean(process.env.VERCEL);
-const REMOTE_URL = process.env.TURSO_DATABASE_URL || process.env.LIBSQL_URL || null;
-const AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN || process.env.LIBSQL_AUTH_TOKEN || null;
-
-const Database = require('libsql').default || require('libsql');
-
-/** libSQL attaches `_metadata` to single-row results; keep API payloads clean. */
-function clean(row) {
-  if (!row || typeof row !== 'object') return row;
-  if (!('_metadata' in row)) return row;
-  const { _metadata, ...rest } = row;
-  return rest;
+function send(op, sql, args) {
+  if (workerDead) throw new Error('database worker is not running');
+  const bound = bind(sql, args);
+  const payload = encoder.encode(JSON.stringify({ op, sql: bound.sql, params: bound.params }));
+  if (payload.length + 4 > reqBuf.length) {
+    throw new Error('query payload exceeds the 16 MB shared buffer');
+  }
+  new Int32Array(reqBuf.buffer)[0] = payload.length;
+  reqBuf.set(payload, 4);
+  const seq = Atomics.load(stateBuf, 0) + 1;
+  Atomics.store(stateBuf, 0, seq);
+  Atomics.notify(stateBuf, 0);
+  Atomics.wait(stateBuf, 1, seq - 1);
+  if (Atomics.load(stateBuf, 1) !== seq || workerDead) {
+    throw new Error('database worker died while running a query');
+  }
+  const len = new Int32Array(respBuf.buffer)[0];
+  const msg = JSON.parse(decoder.decode(respBuf.subarray(4, 4 + len)));
+  if (!msg.ok) throw new Error(msg.error);
+  return msg;
 }
 
 class Statement {
-  constructor(stmt) {
-    this.stmt = stmt;
+  constructor(sql) {
+    this.sql = sql;
   }
 
   get(...args) {
-    return clean(this.stmt.get(...args));
+    const msg = send('get', this.sql, args);
+    return msg.rows && msg.rows.length ? msg.rows[0] : undefined;
   }
 
   all(...args) {
-    const rows = this.stmt.all(...args);
-    return Array.isArray(rows) ? rows.map(clean) : rows;
+    const msg = send('all', this.sql, args);
+    return msg.rows || [];
   }
 
   run(...args) {
-    return this.stmt.run(...args);
-  }
-
-  columns() {
-    return this.stmt.columns();
+    const msg = send('run', this.sql, args);
+    return { changes: msg.changes, lastInsertRowid: msg.lastInsertRowid };
   }
 }
 
-class Connection {
-  constructor(url, options) {
-    this.inner = new Database(url, options);
-  }
-
+class Database {
   prepare(sql) {
-    return new Statement(this.inner.prepare(sql));
+    return new Statement(sql);
   }
 
+  /** Run one or more `;`-separated statements with no parameters. */
   exec(sql) {
-    return this.inner.exec(sql);
+    return send('exec', sql, []);
   }
 
-  pragma(statement, options) {
-    try {
-      return this.inner.pragma(statement, options);
-    } catch {
-      return undefined;
-    }
-  }
-
+  /**
+   * better-sqlite3 compatible: returns a wrapper that runs BEGIN → fn() → COMMIT
+   * (ROLLBACK on throw) when invoked — seed.js calls it as `db.transaction(fn)()`.
+   */
   transaction(fn) {
-    return this.inner.transaction(fn);
+    return (...args) => {
+      send('exec', 'BEGIN', []);
+      try {
+        const result = fn(...args);
+        send('exec', 'COMMIT', []);
+        return result;
+      } catch (err) {
+        try { send('exec', 'ROLLBACK', []); } catch { /* connection may be gone */ }
+        throw err;
+      }
+    };
   }
 
   close() {
-    return this.inner.close?.();
+    try {
+      const seq = Atomics.load(stateBuf, 0) + 1;
+      Atomics.store(stateBuf, 0, -1); // worker interprets -1 as shutdown
+      Atomics.notify(stateBuf, 0);
+      void seq;
+    } catch { /* already gone */ }
+    return worker.terminate();
   }
 }
 
-function resolveTarget() {
-  if (REMOTE_URL) {
-    return { url: REMOTE_URL, options: AUTH_TOKEN ? { authToken: AUTH_TOKEN } : undefined, remote: true };
-  }
-  const dir = IS_SERVERLESS ? '/tmp' : path.join(__dirname, '..', 'data');
-  fs.mkdirSync(dir, { recursive: true });
-  const file = process.env.DB_PATH || path.join(dir, 'kangeyam.db');
-  // A bundled read-only copy can be used as the seed source on serverless cold starts.
-  const bundled = path.join(__dirname, '..', 'data', 'seed.db');
-  if (IS_SERVERLESS && !fs.existsSync(file) && fs.existsSync(bundled)) {
-    fs.copyFileSync(bundled, file);
-  }
-  return { url: `file:${file}`, options: undefined, remote: false };
-}
+const db = new Database();
 
-const target = resolveTarget();
-const db = new Connection(target.url, target.options);
-
-const DB_PATH = target.remote ? target.url.replace(/\/\/.*@/, '//') : target.url.replace(/^file:/, '');
-const DB_MODE = target.remote ? 'turso' : IS_SERVERLESS ? 'ephemeral' : 'file';
-
+// ── schema + migrations (synchronous through the bridge) ──────────────────────
 const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
 db.exec(schema);
 
 /**
- * Additive migrations — schema.sql only runs CREATE TABLE IF NOT EXISTS, so databases
- * created before a column existed need it added here. Safe to run on every boot.
+ * Additive migrations — schema.sql only runs CREATE TABLE IF NOT EXISTS, so a
+ * database created before a column existed needs it added here. Safe on every boot.
  */
 const MIGRATIONS = [
   ['animals', 'review_status', "TEXT NOT NULL DEFAULT 'APPROVED'"],
@@ -127,92 +219,31 @@ const MIGRATIONS = [
 function migrate() {
   let added = 0;
   for (const [table, column, ddl] of MIGRATIONS) {
-    const cols = db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
-    if (!cols.includes(column)) {
+    const row = db
+      .prepare(
+        `SELECT 1 FROM information_schema.columns
+          WHERE table_schema = 'public' AND table_name = ? AND column_name = ?`
+      )
+      .get(table, column);
+    if (!row) {
       db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
       added += 1;
     }
   }
   db.exec('CREATE INDEX IF NOT EXISTS idx_animals_review ON animals(review_status)');
   db.exec('CREATE INDEX IF NOT EXISTS idx_owners_review ON owners(review_status)');
-
-  // Coat-colour list changed (Kari Mayilai / Karambai / Vellai replaced by
-  // Kaari / Kaarampasu / Kurra). SQLite can't alter a CHECK, so rebuild the
-  // animals table. Only current_color values that are no longer options are
-  // cleared (to NULL) — explicitly permitted by the operator for this field;
-  // every other column is copied verbatim.
-  const animalsSql = (db.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='animals'`).get() || {}).sql || '';
-  if (animalsSql.includes('KARI_MAYILAI')) {
-    db.exec('PRAGMA foreign_keys=OFF');
-    db.exec(`
-      CREATE TABLE animals_rebuild (
-        id                   INTEGER PRIMARY KEY AUTOINCREMENT,
-        tag_or_reg_no        TEXT UNIQUE,
-        name_ta              TEXT NOT NULL,
-        name_en              TEXT NOT NULL,
-        sex                  TEXT NOT NULL CHECK (sex IN ('BULL','COW')),
-        dob                  TEXT,
-        dob_precision        TEXT NOT NULL DEFAULT 'ESTIMATED_BY_TEETH'
-                             CHECK (dob_precision IN ('EXACT','MONTH_YEAR','YEAR_ONLY','ESTIMATED_BY_TEETH')),
-        dentition_stage      TEXT CHECK (dentition_stage IN ('CALF_MILK_TEETH','TWO_TOOTH','FOUR_TOOTH','SIX_TOOTH','FULL_MOUTH')),
-        birth_color          TEXT CHECK (birth_color IN ('RED_FAWN','GREY','BLACK','OTHER')),
-        current_color        TEXT DEFAULT 'MAYILAI'
-                             CHECK (current_color IS NULL OR current_color IN ('MAYILAI','SEVALAI','KARI','KARAM_PASU','KURRA','OTHER')),
-        distinctive_markings TEXT,
-        current_village      TEXT,
-        current_district     TEXT,
-        sire_id              INTEGER REFERENCES animals(id) ON DELETE SET NULL,
-        dam_id               INTEGER REFERENCES animals(id) ON DELETE SET NULL,
-        is_stub              INTEGER NOT NULL DEFAULT 0,
-        status               TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','SOLD','DECEASED')),
-        notes                TEXT,
-        archived_at          TEXT,
-        review_status        TEXT NOT NULL DEFAULT 'APPROVED'
-                             CHECK (review_status IN ('PENDING','APPROVED','REJECTED')),
-        submitted_at         TEXT,
-        reviewed_at          TEXT,
-        review_note          TEXT,
-        submitter_name       TEXT,
-        submitter_phone      TEXT,
-        created_at           TEXT NOT NULL DEFAULT (datetime('now'))
-      );
-      INSERT INTO animals_rebuild (
-        id, tag_or_reg_no, name_ta, name_en, sex, dob, dob_precision, dentition_stage,
-        birth_color, current_color, distinctive_markings, current_village, current_district,
-        sire_id, dam_id, is_stub, status, notes, archived_at, review_status,
-        submitted_at, reviewed_at, review_note, submitter_name, submitter_phone, created_at
-      )
-      SELECT
-        id, tag_or_reg_no, name_ta, name_en, sex, dob, dob_precision, dentition_stage,
-        birth_color,
-        CASE WHEN current_color IN ('MAYILAI','SEVALAI','KARI','KARAM_PASU','KURRA','OTHER')
-             THEN current_color ELSE NULL END,
-        distinctive_markings, current_village, current_district,
-        sire_id, dam_id, is_stub, status, notes, archived_at, review_status,
-        submitted_at, reviewed_at, review_note, submitter_name, submitter_phone, created_at
-      FROM animals;
-      DROP TABLE animals;
-      ALTER TABLE animals_rebuild RENAME TO animals;
-    `);
-    db.exec('PRAGMA foreign_keys=ON');
-    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_sex    ON animals(sex)');
-    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_color  ON animals(current_color)');
-    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_sire   ON animals(sire_id)');
-    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_dam    ON animals(dam_id)');
-    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_village ON animals(current_village)');
-    db.exec('CREATE INDEX IF NOT EXISTS idx_animals_review ON animals(review_status)');
-    console.log('[db] migrated coat-colour options (removed colours cleared)');
-  }
-
   if (added) console.log(`[db] migrated ${added} column(s)`);
 }
 migrate();
 
+const urlForLog = DATABASE_URL.replace(/\/\/([^@/]+)@/, '//***@');
+const DB_PATH = urlForLog;
+const DB_MODE = /neon\.tech/i.test(DATABASE_URL) ? 'neon' : 'postgres';
+
 /**
- * Demo data is opt-in. The registry starts empty on a new deployment and only fills
- * with records that were submitted and approved (or created by an admin), which is
- * what a real herd needs. `SEED_DEMO_DATA=1 npm start` / `npm run seed` loads the
- * 29-animal sample herd back in.
+ * Demo data is opt-in. The registry starts empty on a new deployment and only
+ * fills with records that were submitted and approved (or created by an admin),
+ * which is what a real herd needs. `SEED_DEMO_DATA=1 npm start` loads the sample herd.
  */
 function seedIfEmpty({ force = false } = {}) {
   if (!force && process.env.SEED_DEMO_DATA !== '1') return false;
@@ -226,14 +257,11 @@ function seedIfEmpty({ force = false } = {}) {
   return false;
 }
 
-/** Empty every table, keeping the schema. Used by `npm run db:wipe`. */
+/** Empty every table, keep the schema. Used by `npm run db:wipe`. */
 function wipe() {
-  const tables = [
-    'breeding_events', 'achievements', 'animal_media', 'animal_ownerships',
-    'animals', 'owners',
-  ];
-  for (const t of tables) db.exec(`DELETE FROM ${t}`);
-  db.exec("DELETE FROM sqlite_sequence WHERE name IN ('animals','owners','animal_ownerships','animal_media','achievements','breeding_events')");
+  db.exec(
+    'TRUNCATE breeding_events, achievements, animal_media, animal_ownerships, animals, owners RESTART IDENTITY'
+  );
 }
 
 function counts() {
@@ -246,4 +274,4 @@ function counts() {
     .get();
 }
 
-module.exports = { db, seedIfEmpty, wipe, counts, DB_PATH, DB_MODE };
+module.exports = { db, seedIfEmpty, wipe, counts, DB_PATH, DB_MODE, DATABASE_URL };

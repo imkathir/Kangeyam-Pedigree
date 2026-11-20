@@ -411,7 +411,7 @@ const BREEDING_EVENTS = [
 function seed(db) {
   const insOwner = db.prepare(
     `INSERT INTO owners (name_ta, name_en, farm_name, phone, village, district, is_contact_public)
-     VALUES (@name_ta, @name_en, @farm_name, @phone, @village, @district, @is_contact_public)`
+     VALUES (@name_ta, @name_en, @farm_name, @phone, @village, @district, @is_contact_public) RETURNING id`
   );
   const insAnimal = db.prepare(
     `INSERT INTO animals (tag_or_reg_no, name_ta, name_en, sex, dob, dob_precision, dentition_stage,
@@ -419,7 +419,7 @@ function seed(db) {
         is_stub, status, notes, created_at)
      VALUES (@tag, @name_ta, @name_en, @sex, @dob, @dob_precision, @dentition_stage,
         @birth_color, @current_color, @distinctive_markings, @village, @district,
-        @is_stub, 'ACTIVE', @notes, @created_at)`
+        @is_stub, 'ACTIVE', @notes, @created_at) RETURNING id`
   );
   const setParents = db.prepare('UPDATE animals SET sire_id = ?, dam_id = ? WHERE id = ?');
   const insOwnership = db.prepare(

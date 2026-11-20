@@ -335,7 +335,7 @@ api.post('/animals', (req, res) => {
   Object.assign(data, submitterFields(body, req.isAdmin));
 
   const cols = Object.keys(data);
-  const sql = `INSERT INTO animals (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`;
+  const sql = `INSERT INTO animals (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')}) RETURNING id`;
   const info = db.prepare(sql).run(...cols.map((c) => data[c]));
   const id = Number(info.lastInsertRowid);
 
@@ -423,7 +423,7 @@ api.delete('/animals/:id', (req, res) => {
   const force = bool(req.query.force) || bool((req.body || {}).force);
 
   if (dependents > 0 && !force) {
-    db.prepare("UPDATE animals SET archived_at = datetime('now'), status = 'DECEASED' WHERE id = ?").run(animal.id);
+    db.prepare("UPDATE animals SET archived_at = (now() AT TIME ZONE 'UTC'), status = 'DECEASED' WHERE id = ?").run(animal.id);
     clearCaches();
     return res.status(200).json({
       data: { id: animal.id, archived: true, deleted: false },
@@ -530,7 +530,7 @@ api.post('/animals/:id/media', (req, res) => {
   if (isPrimary) db.prepare('UPDATE animal_media SET is_primary = 0 WHERE animal_id = ?').run(animal.id);
   const info = db.prepare(
     `INSERT INTO animal_media (animal_id, media_url, media_type, life_stage, caption, is_primary)
-     VALUES (?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, ?, ?, ?, ?) RETURNING id`
   ).run(animal.id, b.media_url, type, b.life_stage || null, b.caption || null, count === 0 ? 1 : isPrimary);
   res.status(201).json({ data: db.prepare('SELECT * FROM animal_media WHERE id = ?').get(info.lastInsertRowid) });
 });
@@ -578,7 +578,7 @@ function createOwnerInline(owner, isAdmin = false) {
   const info = db.prepare(
     `INSERT INTO owners (name_ta, name_en, farm_name, phone, village, district, is_contact_public,
                          review_status, submitted_at, reviewed_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
   ).run(
     nameTa, nameEn, owner.farm_name || null,
     owner.phone || null, owner.village || null, owner.district || null,
@@ -628,7 +628,7 @@ api.post('/animals/:id/ownerships', (req, res) => {
     : (db.prepare('SELECT COALESCE(MAX(sequence_order), 0) + 1 AS n FROM animal_ownerships WHERE animal_id = ?').get(animal.id).n);
   const info = db.prepare(
     `INSERT INTO animal_ownerships (animal_id, owner_id, role, sequence_order, from_date, to_date, place_note)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`
   ).run(animal.id, ownerId, role, seq, b.from_date || null, b.to_date || null, b.place_note || null);
   res.status(201).json({ data: db.prepare('SELECT * FROM animal_ownerships WHERE id = ?').get(info.lastInsertRowid) });
 });
@@ -754,7 +754,7 @@ api.post('/animals/:id/achievements', (req, res) => {
   const v = validateAchievement(req.body || {});
   const info = db.prepare(
     `INSERT INTO achievements (animal_id, category, event_name, location, event_date, rank_or_metric, partner_animal_id, notes)
-     VALUES (@animal_id, @category, @event_name, @location, @event_date, @rank_or_metric, @partner_animal_id, @notes)`
+     VALUES (@animal_id, @category, @event_name, @location, @event_date, @rank_or_metric, @partner_animal_id, @notes) RETURNING id`
   ).run({
     animal_id: animal.id, category: v.category, event_name: v.event_name,
     location: v.location ?? null, event_date: v.event_date ?? null,
@@ -822,7 +822,7 @@ api.post('/owners', (req, res) => {
   const info = db.prepare(
     `INSERT INTO owners (name_ta, name_en, farm_name, phone, village, district, is_contact_public, notes,
                          review_status, submitted_at, reviewed_at, submitter_name, submitter_phone)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
   ).run(
     nameTa, nameEn, b.farm_name || null, b.phone || null,
     b.village || null, b.district || null, b.is_contact_public ? 1 : 0, b.notes || null,

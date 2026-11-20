@@ -13,6 +13,6 @@ console.log(`[reset] cleared ${before.animals} animals / ${before.owners} owners
 if (process.argv.includes('--with-demo')) {
   const { seed } = require('./seed');
   seed(db);
-  console.log('[reset] demo herd reloaded');
+  console.log('[reset] now:', counts());
 }
-console.log('[reset] now:', counts());
+db.close();

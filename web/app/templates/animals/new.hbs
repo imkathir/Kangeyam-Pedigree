@@ -52,6 +52,7 @@
         <div class="field">
           <label for="wiz-photos">{{tr "Photos of this animal"}}</label>
           <input id="wiz-photos" type="file" accept="image/*" multiple {{on "change" this.addPhotos}}>
+          {{#if this.photoBusy}}<div class="hint">{{tr "Preparing photos…"}}</div>{{/if}}
           <div class="hint">{{tr "Up to 10 photos — resized on your device before sending, so small phone photos are fine."}}</div>
         </div>
         {{#if this.photos.length}}
@@ -178,6 +179,7 @@
             <div class="field">
               <label for="stub-photo">{{tr "Photo (optional)"}}</label>
               <input id="stub-photo" type="file" accept="image/*" {{on "change" this.stubPhotoPicked}}>
+              {{#if this.stubPhotoBusy}}<div class="hint">{{tr "Preparing…"}}</div>{{/if}}
               {{#if this.stubPhoto}}
                 <div class="photo-strip" style="margin-top:.5rem">
                   <div class="photo-thumb">
@@ -189,8 +191,8 @@
               <div class="hint">{{tr "One photo is enough for a stub ancestor."}}</div>
             </div>
             <div class="row-wrap">
-              <button type="button" class="btn btn-primary btn-sm" disabled={{this.creatingStub}} {{on "click" this.createStub}}>
-                {{if this.creatingStub (tr "Creating…") (tr "Create & link stub")}}
+              <button type="button" class="btn btn-primary btn-sm" disabled={{or this.creatingStub this.stubPhotoBusy}} {{on "click" this.createStub}}>
+                {{if this.stubPhotoBusy (tr "Preparing…") (if this.creatingStub (tr "Creating…") (tr "Create & link stub"))}}
               </button>
               <button type="button" class="btn btn-ghost btn-sm" {{on "click" this.cancelStub}}>{{tr "Cancel"}}</button>
             </div>
@@ -259,8 +261,8 @@
       </fieldset>
 
       <div class="row-wrap">
-        <button type="submit" class="btn btn-primary btn-lg" disabled={{this.saving}}>
-          {{if this.saving (tr "Saving…") (tr "Register animal")}}
+        <button type="submit" class="btn btn-primary btn-lg" disabled={{or this.saving this.photoBusy}}>
+          {{if this.photoBusy (tr "Preparing photos…") (if this.saving (tr "Saving…") (tr "Register animal"))}}
         </button>
         <p class="tiny muted" style="margin:0">{{tr "Parents can stay unknown — the animal starts at Generation 0 and can be linked later."}}</p>
       </div>

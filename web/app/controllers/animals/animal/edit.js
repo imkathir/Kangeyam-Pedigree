@@ -18,6 +18,7 @@ export default class AnimalsAnimalEditController extends Controller {
   districts = DISTRICTS;
 
   @tracked saving = false;
+  @tracked destroying = false;
   @tracked errors = [];
   @tracked confirmDelete = false;
   @tracked archived = false;
@@ -117,6 +118,8 @@ export default class AnimalsAnimalEditController extends Controller {
 
   @action
   async destroy(force = false) {
+    if (this.destroying) return;
+    this.destroying = true;
     try {
       const res = await this.api.deleteAnimal(this.animal.id, force);
       if (res.data.archived) {
@@ -128,6 +131,8 @@ export default class AnimalsAnimalEditController extends Controller {
       }
     } catch (e) {
       this.flash.error(e.message);
+    } finally {
+      this.destroying = false;
     }
   }
 }

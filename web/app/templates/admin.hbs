@@ -80,7 +80,7 @@
             <button class="btn btn-primary btn-sm" type="button" disabled={{and (eq this.busyKind "animal") (eq this.busyId a.id)}} {{on "click" (fn this.approveAnimal a)}}>
               {{if (and (eq this.busyKind "animal") (eq this.busyId a.id)) (tr "Working…") (tr "Approve")}}
             </button>
-            <button class="btn btn-danger btn-sm" type="button" disabled={{and (eq this.busyKind "animal") (eq this.busyId a.id)}} {{on "click" (fn this.rejectAnimal a)}}>{{tr "Reject"}}</button>
+            <button class="btn btn-danger btn-sm" type="button" disabled={{and (eq this.busyKind "animal") (eq this.busyId a.id)}} {{on "click" (fn this.rejectAnimal a)}}>{{if (and (eq this.busyKind "animal") (eq this.busyId a.id)) (tr "Working…") (tr "Reject")}}</button>
           </div>
         </article>
       {{/each}}
@@ -118,7 +118,7 @@
             <button class="btn btn-primary btn-sm" type="button" disabled={{and (eq this.busyKind "owner") (eq this.busyId o.id)}} {{on "click" (fn this.approveOwner o)}}>
               {{if (and (eq this.busyKind "owner") (eq this.busyId o.id)) (tr "Working…") (tr "Approve")}}
             </button>
-            <button class="btn btn-danger btn-sm" type="button" disabled={{and (eq this.busyKind "owner") (eq this.busyId o.id)}} {{on "click" (fn this.rejectOwner o)}}>{{tr "Reject"}}</button>
+            <button class="btn btn-danger btn-sm" type="button" disabled={{and (eq this.busyKind "owner") (eq this.busyId o.id)}} {{on "click" (fn this.rejectOwner o)}}>{{if (and (eq this.busyKind "owner") (eq this.busyId o.id)) (tr "Working…") (tr "Reject")}}</button>
           </div>
         </article>
       {{/each}}

@@ -13,6 +13,7 @@ export default class AnimalsAnimalOwnershipController extends Controller {
 
   @tracked showForm = false;
   @tracked saving = false;
+  @tracked busyId = null;
   @tracked errors = [];
 
   @tracked role = 'CURRENT_OWNER';
@@ -114,6 +115,8 @@ export default class AnimalsAnimalOwnershipController extends Controller {
 
   @action
   async saveEdit(id) {
+    if (this.busyId) return;
+    this.busyId = id;
     try {
       await this.api.updateOwnership(this.animal.id, id, {
         from_date: this.draft.from_date || null,
@@ -127,6 +130,8 @@ export default class AnimalsAnimalOwnershipController extends Controller {
       this.router.refresh('animals.animal');
     } catch (e) {
       this.flash.error(e.message);
+    } finally {
+      this.busyId = null;
     }
   }
 
@@ -143,6 +148,8 @@ export default class AnimalsAnimalOwnershipController extends Controller {
 
   @action
   async remove(id) {
+    if (this.busyId) return;
+    this.busyId = id;
     try {
       await this.api.deleteOwnership(this.animal.id, id);
       this.flash.success('Ownership entry removed.');
@@ -150,6 +157,8 @@ export default class AnimalsAnimalOwnershipController extends Controller {
       this.router.refresh('animals.animal');
     } catch (e) {
       this.flash.error(e.message);
+    } finally {
+      this.busyId = null;
     }
   }
 }

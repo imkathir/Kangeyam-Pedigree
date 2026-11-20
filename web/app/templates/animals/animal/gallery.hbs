@@ -20,6 +20,7 @@
         <div class="field span-2">
           <label for="file">{{tr "Upload from device"}}</label>
           <input id="file" type="file" accept="image/*,video/*" {{on "change" this.uploadFile}}>
+          {{#if this.uploading}}<div class="hint">{{tr "Preparing…"}}</div>{{/if}}
           <div class="hint">{{tr "Photos are resized on your device before upload (max 3.5 MB per file)."}}</div>
         </div>
         <div class="field">
@@ -41,7 +42,7 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" disabled={{this.saving}}>{{if this.saving (tr "Saving…") (tr "Add to gallery")}}</button>
+        <button type="submit" class="btn btn-primary" disabled={{or this.saving this.uploading}}>{{if this.uploading (tr "Preparing…") (if this.saving (tr "Saving…") (tr "Add to gallery"))}}</button>
         <button type="button" class="btn btn-ghost" {{on "click" this.toggleForm}}>{{tr "Cancel"}}</button>
       </div>
     </form>
@@ -70,9 +71,9 @@
           {{/if}}
           <div class="tile-actions">
             {{#unless m.is_primary}}
-              <button type="button" class="icon-btn" title={{tr "Set as primary"}} {{on "click" (fn this.makePrimary m)}}>★</button>
+              <button type="button" class="icon-btn" title={{tr "Set as primary"}} disabled={{eq this.busyMediaId m.id}} {{on "click" (fn this.makePrimary m)}}>★</button>
             {{/unless}}
-            <button type="button" class="icon-btn" title={{tr "Remove"}} {{on "click" (fn this.remove m)}}>✕</button>
+            <button type="button" class="icon-btn" title={{tr "Remove"}} disabled={{eq this.busyMediaId m.id}} {{on "click" (fn this.remove m)}}>✕</button>
           </div>
           <figcaption class="tile-cap">
             <div>{{or m.caption "—"}}</div>

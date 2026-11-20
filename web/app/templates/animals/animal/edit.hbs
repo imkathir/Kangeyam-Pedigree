@@ -163,7 +163,7 @@
       </div>
       {{#if this.confirmDelete}}
         <div class="row" style="gap:6px">
-          <button type="button" class="btn btn-danger" {{on "click" (fn this.destroy false)}}>{{tr "Yes, delete / archive"}}</button>
+          <button type="button" class="btn btn-danger" disabled={{this.destroying}} {{on "click" (fn this.destroy false)}}>{{if this.destroying (tr "Deleting…") (tr "Yes, delete / archive")}}</button>
           <button type="button" class="btn btn-quiet" {{on "click" this.toggleDelete}}>{{tr "Cancel"}}</button>
         </div>
       {{else}}

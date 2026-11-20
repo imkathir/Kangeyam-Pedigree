@@ -129,7 +129,7 @@
               <div class="row no-print" style="gap:4px">
                 <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.edit row)}}>{{tr "Edit"}}</button>
                 {{#if (eq this.confirmId row.id)}}
-                  <button type="button" class="btn btn-danger btn-sm" {{on "click" (fn this.remove row.id)}}>{{tr "Confirm"}}</button>
+                  <button type="button" class="btn btn-danger btn-sm" disabled={{eq this.busyId row.id}} {{on "click" (fn this.remove row.id)}}>{{if (eq this.busyId row.id) (tr "Working…") (tr "Confirm")}}</button>
                 {{else}}
                   <button type="button" class="btn btn-quiet btn-sm" {{on "click" (fn this.askDelete row.id)}}>{{tr "Remove"}}</button>
                 {{/if}}
@@ -165,7 +165,7 @@
                   </div>
                 </div>
                 <div class="row" style="gap:8px">
-                  <button type="button" class="btn btn-primary btn-sm" {{on "click" (fn this.saveEdit row.id)}}>{{tr "Save"}}</button>
+                  <button type="button" class="btn btn-primary btn-sm" disabled={{eq this.busyId row.id}} {{on "click" (fn this.saveEdit row.id)}}>{{if (eq this.busyId row.id) (tr "Working…") (tr "Save")}}</button>
                   <button type="button" class="btn btn-ghost btn-sm" {{on "click" this.cancelEdit}}>{{tr "Cancel"}}</button>
                 </div>
               </div>

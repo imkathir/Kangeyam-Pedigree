@@ -71,7 +71,7 @@
               <AchievementCard @achievement={{ach}}>
                 {{#if (eq this.confirmId ach.id)}}
                   <div class="row" style="gap:6px">
-                    <button type="button" class="btn btn-danger btn-sm" {{on "click" (fn this.remove ach.id)}}>{{tr "Confirm"}}</button>
+                    <button type="button" class="btn btn-danger btn-sm" disabled={{eq this.busyId ach.id}} {{on "click" (fn this.remove ach.id)}}>{{if (eq this.busyId ach.id) (tr "Working…") (tr "Confirm")}}</button>
                     <button type="button" class="btn btn-quiet btn-sm" {{on "click" this.askDelete}}>{{tr "No"}}</button>
                   </div>
                 {{else}}

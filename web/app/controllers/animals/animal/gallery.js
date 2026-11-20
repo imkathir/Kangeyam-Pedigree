@@ -15,6 +15,8 @@ export default class AnimalsAnimalGalleryController extends Controller {
   @tracked filter = '';
   @tracked showForm = false;
   @tracked saving = false;
+  @tracked uploading = false;
+  @tracked busyMediaId = null;
   @tracked errors = [];
 
   @tracked media_url = '';
@@ -60,7 +62,8 @@ export default class AnimalsAnimalGalleryController extends Controller {
   async uploadFile(event) {
     const file = event.target.files?.[0];
     event.target.value = '';
-    if (!file) return;
+    if (!file || this.uploading) return;
+    this.uploading = true;
     try {
       if (isImageFile(file)) {
         // shrink first — uploads ride inside JSON and Vercel caps requests at 4.5 MB
@@ -81,6 +84,8 @@ export default class AnimalsAnimalGalleryController extends Controller {
       this.flash.success('Image loaded — add a caption and save.');
     } catch (e) {
       this.flash.error(e.message || 'That file could not be read.');
+    } finally {
+      this.uploading = false;
     }
   }
 
@@ -122,23 +127,31 @@ export default class AnimalsAnimalGalleryController extends Controller {
 
   @action
   async makePrimary(media) {
+    if (this.busyMediaId) return;
+    this.busyMediaId = media.id;
     try {
       await this.api.updateMedia(this.animal.id, media.id, { is_primary: true });
       this.flash.success('Primary profile image updated.');
       this.router.refresh('animals.animal');
     } catch (e) {
       this.flash.error(e.message);
+    } finally {
+      this.busyMediaId = null;
     }
   }
 
   @action
   async remove(media) {
+    if (this.busyMediaId) return;
+    this.busyMediaId = media.id;
     try {
       await this.api.deleteMedia(this.animal.id, media.id);
       this.flash.success('Photo removed.');
       this.router.refresh('animals.animal');
     } catch (e) {
       this.flash.error(e.message);
+    } finally {
+      this.busyMediaId = null;
     }
   }
 }

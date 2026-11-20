@@ -31,6 +31,7 @@ export default class AnimalsNewController extends Controller {
   districts = DISTRICTS;
 
   @tracked saving = false;
+  @tracked photoBusy = false; // device photos still compressing
   @tracked errors = [];
   @tracked submitted = null; // set when the record was accepted for review
 
@@ -58,6 +59,7 @@ export default class AnimalsNewController extends Controller {
   @tracked stubVillage = '';
   @tracked stubPhoto = null; // one compressed data-URL — a quick stub needs one photo at most
   @tracked creatingStub = false;
+  @tracked stubPhotoBusy = false;
 
   get summaryName() {
     return this.name || 'New animal';
@@ -83,6 +85,9 @@ export default class AnimalsNewController extends Controller {
   async addPhotos(event) {
     const files = Array.from(event.target.files || []);
     event.target.value = ''; // allow re-picking the same file later
+    if (!files.length || this.photoBusy) return; // one compression pass at a time
+    this.photoBusy = true;
+    try {
     for (const file of files) {
       if (this.photos.length >= 10) {
         this.flash.error('A maximum of 10 photos per animal.');
@@ -101,6 +106,9 @@ export default class AnimalsNewController extends Controller {
       } catch (e) {
         this.flash.error(e.message || 'That file could not be read.');
       }
+    }
+    } finally {
+      this.photoBusy = false;
     }
   }
 
@@ -227,15 +235,18 @@ export default class AnimalsNewController extends Controller {
   async stubPhotoPicked(event) {
     const file = (event.target.files || [])[0];
     event.target.value = ''; // allow re-picking the same file later
-    if (!file) return;
+    if (!file || this.stubPhotoBusy) return;
     if (!isImageFile(file)) {
       this.flash.error('That file is not an image.');
       return;
     }
+    this.stubPhotoBusy = true;
     try {
       this.stubPhoto = await compressImage(file, { maxDim: 1600, maxBytes: 400000 });
     } catch (e) {
       this.flash.error(e.message || 'That file could not be read.');
+    } finally {
+      this.stubPhotoBusy = false;
     }
   }
 

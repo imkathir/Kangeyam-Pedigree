@@ -13,6 +13,7 @@ export default class AnimalsAnimalAchievementsController extends Controller {
 
   @tracked showForm = false;
   @tracked saving = false;
+  @tracked busyId = null;
   @tracked errors = [];
 
   @tracked category = 'REKLA_RACE';
@@ -101,6 +102,8 @@ export default class AnimalsAnimalAchievementsController extends Controller {
 
   @action
   async remove(id) {
+    if (this.busyId) return;
+    this.busyId = id;
     try {
       await this.api.deleteAchievement(this.animal.id, id);
       this.flash.success('Achievement removed.');
@@ -108,6 +111,8 @@ export default class AnimalsAnimalAchievementsController extends Controller {
       this.router.refresh('animals.animal');
     } catch (e) {
       this.flash.error(e.message);
+    } finally {
+      this.busyId = null;
     }
   }
 }

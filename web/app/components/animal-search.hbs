@@ -16,7 +16,7 @@
 
   {{#if this.open}}
     <div class="card card-tight" style="position:absolute;z-index:60;left:0;right:0;top:calc(100% + 4px);max-height:300px;overflow:auto;padding:6px">
-      {{#if this.search.isRunning}}
+      {{#if this.searching}}
         <div class="tiny muted" style="padding:8px">{{tr "Searching…"}}</div>
       {{else if this.results.length}}
         {{#each this.results as |a|}}

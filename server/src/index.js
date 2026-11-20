@@ -588,6 +588,74 @@ api.delete('/animals/:id/media/:mediaId', (req, res) => {
   res.json({ data: { id: media.id, deleted: true } });
 });
 
+/* ── maintenance: shrink stored photo data URLs to a soft 50 KB ──────────────
+ * One-shot backfill for images already sitting in animal_media. New uploads
+ * are compressed on-device before they ever arrive; this catches the rest.
+ * Key-gated like every other admin write. Lazy-requires sharp so normal
+ * cold starts never pay for it.
+ */
+async function shrinkPhoto(sharp, buf, target) {
+  const meta = await sharp(buf).metadata();
+  const start = Math.min(meta.width || 1600, 1600);
+  const widths = [...new Set(
+    [start, Math.round(start * 0.75), Math.round(start * 0.55), Math.round(start * 0.4), 640]
+      .filter((w) => w >= 200),
+  )];
+  for (const width of widths) {
+    for (const quality of [75, 65, 55, 45, 35]) {
+      const out = await sharp(buf).rotate().flatten({ background: '#ffffff' })
+        .resize({ width, withoutEnlargement: true })
+        .jpeg({ quality }).toBuffer();
+      if (out.length <= target) return out;
+    }
+  }
+  return sharp(buf).rotate().flatten({ background: '#ffffff' })
+    .resize({ width: 400, withoutEnlargement: true })
+    .jpeg({ quality: 30 }).toBuffer();
+}
+
+api.post('/admin/media/compress', (req, res, next) => {
+  requireAdmin(req);
+  const target = Math.max(10000, Math.min(Number((req.body || {}).target_bytes) || 50000, 50000));
+  const threshold = Math.ceil((target * 4) / 3) + 100; // base64 ≈ 4/3 of bytes
+  const rows = db.prepare(
+    `SELECT id, media_url FROM animal_media
+      WHERE media_url LIKE 'data:image/%' AND LENGTH(media_url) > ?
+      ORDER BY id`,
+  ).all(threshold);
+  (async () => {
+    const sharp = require('sharp'); // loaded only when this runs
+    let compressed = 0;
+    let saved = 0;
+    const report = [];
+    const errors = [];
+    for (const row of rows) {
+      try {
+        const comma = row.media_url.indexOf(',');
+        const buf = Buffer.from(row.media_url.slice(comma + 1), 'base64');
+        const out = await shrinkPhoto(sharp, buf, target);
+        const nextUrl = `data:image/jpeg;base64,${out.toString('base64')}`;
+        const info = db.prepare(
+          'UPDATE animal_media SET media_url = ? WHERE id = ? AND media_url = ?',
+        ).run(nextUrl, row.id, row.media_url);
+        if (info.changes) {
+          compressed++;
+          saved += row.media_url.length - nextUrl.length;
+          report.push({ id: row.id, before: row.media_url.length, after: nextUrl.length });
+        }
+      } catch (e) {
+        errors.push({ id: row.id, error: e.message });
+      }
+    }
+    res.json({
+      data: {
+        target_bytes: target, scanned: rows.length, compressed,
+        saved_bytes: saved, rows: report, errors,
+      },
+    });
+  })().catch(next);
+});
+
 /* ── ownerships ─────────────────────────────────────────────────────────── */
 function createOwnerInline(owner, isAdmin = false) {
   if (!owner) throw new ApiError(422, 'owner is required when creating an owner inline');

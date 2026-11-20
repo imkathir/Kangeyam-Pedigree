@@ -95,7 +95,7 @@ export default class AnimalsNewController extends Controller {
       }
       try {
         const media_url = isImageFile(file)
-          ? await compressImage(file, { maxDim: 1600, maxBytes: 400000 })
+          ? await compressImage(file, { maxDim: 1600, maxBytes: 50000 })
           : await readPlainDataURL(file);
         // keep the whole JSON body well under the 4.5 MB request cap
         if (this.photos.reduce((n, p) => n + p.media_url.length, 0) + media_url.length > 4_200_000) {
@@ -242,7 +242,7 @@ export default class AnimalsNewController extends Controller {
     }
     this.stubPhotoBusy = true;
     try {
-      this.stubPhoto = await compressImage(file, { maxDim: 1600, maxBytes: 400000 });
+      this.stubPhoto = await compressImage(file, { maxDim: 1600, maxBytes: 50000 });
     } catch (e) {
       this.flash.error(e.message || 'That file could not be read.');
     } finally {

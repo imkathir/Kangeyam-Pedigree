@@ -67,7 +67,7 @@ export default class AnimalsAnimalGalleryController extends Controller {
     try {
       if (isImageFile(file)) {
         // shrink first — uploads ride inside JSON and Vercel caps requests at 4.5 MB
-        this.media_url = await compressImage(file, { maxDim: 1600, maxBytes: 600000 });
+        this.media_url = await compressImage(file, { maxDim: 1600, maxBytes: 50000 });
       } else {
         if (file.size > 3.5 * 1024 * 1024) {
           this.flash.error('Please choose an image under 3.5 MB.');

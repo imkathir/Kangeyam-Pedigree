@@ -21,7 +21,7 @@
           <label for="file">{{tr "Upload from device"}}</label>
           <input id="file" type="file" accept="image/*,video/*" {{on "change" this.uploadFile}}>
           {{#if this.uploading}}<div class="hint">{{tr "Preparing…"}}</div>{{/if}}
-          <div class="hint">{{tr "Photos are resized on your device before upload (max 3.5 MB per file)."}}</div>
+          <div class="hint">{{tr "Images are shrunk to about 50 KB on your device; videos up to 3.5 MB."}}</div>
         </div>
         <div class="field">
           <label for="stage">{{tr "Life stage"}}</label>

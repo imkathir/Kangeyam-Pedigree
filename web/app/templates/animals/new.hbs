@@ -175,6 +175,19 @@
               <label>{{tr "Village"}}</label>
               <input type="text" value={{this.stubVillage}} placeholder={{tr "Vellakoil"}} {{on "input" (fn this.set "stubVillage")}}>
             </div>
+            <div class="field">
+              <label for="stub-photo">{{tr "Photo (optional)"}}</label>
+              <input id="stub-photo" type="file" accept="image/*" {{on "change" this.stubPhotoPicked}}>
+              {{#if this.stubPhoto}}
+                <div class="photo-strip" style="margin-top:.5rem">
+                  <div class="photo-thumb">
+                    <img src={{this.stubPhoto}} alt="">
+                    <button type="button" class="photo-x" {{on "click" this.clearStubPhoto}} aria-label={{tr "Remove"}}>✕</button>
+                  </div>
+                </div>
+              {{/if}}
+              <div class="hint">{{tr "One photo is enough for a stub ancestor."}}</div>
+            </div>
             <div class="row-wrap">
               <button type="button" class="btn btn-primary btn-sm" disabled={{this.creatingStub}} {{on "click" this.createStub}}>
                 {{if this.creatingStub (tr "Creating…") (tr "Create & link stub")}}

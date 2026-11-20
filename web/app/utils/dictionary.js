@@ -369,6 +369,8 @@ const dictionary = {
     "Phone / WhatsApp": "தொலைபேசி / வாட்ஸ்அப்",
     "Phone kept private": "தொலைபேசி மறைவு",
     "Photo & video timeline": "படம் & காணொளி காலவரிசை",
+    "Photo (optional)": "படம் (விருப்பம்)",
+    "One photo is enough for a stub ancestor.": "stub முன்னோருக்கு ஒரு படமே போதும்.",
     "Photos (optional)": "படங்கள் (விருப்பம்)",
     "Photos are resized on your device before upload (max 3.5 MB per file).": "பதிவேற்றும் முன் படங்கள் உங்கள் சாதனத்திலேயே அளவு குறைக்கப்படும் (ஒரு கோப்புக்கு அதிகபட்சம் 3.5 MB).",
     "Photos of this animal": "இந்தக் கால்நடையின் படங்கள்",

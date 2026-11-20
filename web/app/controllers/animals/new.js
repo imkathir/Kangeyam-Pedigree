@@ -56,6 +56,7 @@ export default class AnimalsNewController extends Controller {
   @tracked stubFor = null;
   @tracked stubName = '';
   @tracked stubVillage = '';
+  @tracked stubPhoto = null; // one compressed data-URL — a quick stub needs one photo at most
   @tracked creatingStub = false;
 
   get summaryName() {
@@ -209,11 +210,35 @@ export default class AnimalsNewController extends Controller {
     this.stubFor = kind;
     this.stubName = '';
     this.stubVillage = this.current_village;
+    this.stubPhoto = null;
   }
 
   @action
   cancelStub() {
     this.stubFor = null;
+    this.stubPhoto = null;
+  }
+
+  /** Exactly one image for a stub — same on-device compression as the main form. */
+  @action
+  async stubPhotoPicked(event) {
+    const file = (event.target.files || [])[0];
+    event.target.value = ''; // allow re-picking the same file later
+    if (!file) return;
+    if (!isImageFile(file)) {
+      this.flash.error('That file is not an image.');
+      return;
+    }
+    try {
+      this.stubPhoto = await compressImage(file, { maxDim: 1600, maxBytes: 400000 });
+    } catch (e) {
+      this.flash.error(e.message || 'That file could not be read.');
+    }
+  }
+
+  @action
+  clearStubPhoto() {
+    this.stubPhoto = null;
   }
 
   @action
@@ -224,14 +249,16 @@ export default class AnimalsNewController extends Controller {
     }
     this.creatingStub = true;
     try {
-      const { data: animal, meta } = await this.api.createAnimal({
+      const payload = {
         name: this.stubName.trim(),
         sex: this.stubFor === 'sire' ? 'BULL' : 'COW',
         current_color: 'OTHER',
         current_village: this.stubVillage.trim() || null,
         current_district: this.current_district || null,
         is_stub: true,
-      });
+      };
+      if (this.stubPhoto) payload.media = [{ media_url: this.stubPhoto, media_type: 'PHOTO' }];
+      const { data: animal, meta } = await this.api.createAnimal(payload);
       if (meta?.review_status === 'PENDING') {
         this.errors = ['Stub ancestors are created by registry administrators only.'];
         return;
@@ -240,6 +267,7 @@ export default class AnimalsNewController extends Controller {
       else this.dam = animal;
       this.flash.success(`Stub ancestor “${animal.name_en}” created — it can be completed later.`);
       this.stubFor = null;
+      this.stubPhoto = null;
     } catch (e) {
       this.errors = e.list || [e.message];
     } finally {

@@ -359,10 +359,12 @@ api.post('/animals', (req, res) => {
   const created = { owners: [], media: [] };
   if (req.body.owner_id || (req.body.owner && (req.body.owner.name_en || req.body.owner.name || req.body.owner.name_ta))) {
     const ownerId = req.body.owner_id || createOwnerInline(req.body.owner, req.isAdmin);
+    // Explicit Place from the form wins; otherwise the animal's village stands in.
+    const ownerPlace = req.body.owner_place ? String(req.body.owner_place).trim().slice(0, 120) : null;
     db.prepare(
       `INSERT INTO animal_ownerships (animal_id, owner_id, role, sequence_order, from_date, place_note)
        VALUES (?, ?, ?, 1, ?, ?)`
-    ).run(id, ownerId, req.body.owner_role || 'CURRENT_OWNER', req.body.owner_from_date || null, data.current_village || null);
+    ).run(id, ownerId, req.body.owner_role || 'CURRENT_OWNER', req.body.owner_from_date || null, ownerPlace || data.current_village || null);
     created.owners.push(ownerId);
   }
   if (Array.isArray(req.body.media)) {

@@ -377,6 +377,7 @@ const dictionary = {
     "Pidipadaatha Kaalai": "பிடிபடாத காளை",
     "Pidipadaatha Kaalai — never caught": "பிடிபடாத காளை — ஒருபோதும் பிடிக்கப்படாதவர்",
     "Place": "இடம்",
+    "Where the animal is kept with this owner.": "இந்த உரிமையாளரிடம் கால்நடை வைக்கப்படும் இடம்.",
     "Place note": "இடக் குறிப்பு",
     "Please choose an image under 3.5 MB.": "3.5 MB-க்குள் உள்ள படத்தைத் தேர்ந்தெடுக்கவும்.",
     "Preview": "முன்னோட்டம்",

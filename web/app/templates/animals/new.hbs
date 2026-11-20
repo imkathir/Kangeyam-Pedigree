@@ -246,6 +246,11 @@
               <input type="tel" value={{this.owner.phone}} placeholder="+91 …" {{on "input" (fn this.setOwner "phone")}}>
             </div>
           </div>
+          <div class="field">
+            <label>{{tr "Place"}}</label>
+            <input id="owner-place" type="text" value={{this.owner.place}} placeholder={{tr "Kangeyam"}} {{on "input" (fn this.setOwner "place")}}>
+            <div class="hint">{{tr "Where the animal is kept with this owner."}}</div>
+          </div>
           <label class="checkline">
             <input type="checkbox" checked={{this.owner.is_contact_public}} {{on "change" (fn this.setOwner "is_contact_public")}}>
             <span>{{tr "Show this phone number publicly on owner and animal pages."}}</span>

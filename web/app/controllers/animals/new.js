@@ -51,7 +51,7 @@ export default class AnimalsNewController extends Controller {
   @tracked dam = null;
   @tracked ownerMode = 'existing';
   @tracked owner_id = '';
-  @tracked owner = { name: '', phone: '', village: '', district: '', is_contact_public: false };
+  @tracked owner = { name: '', phone: '', village: '', district: '', place: '', is_contact_public: false };
 
   @tracked stubFor = null;
   @tracked stubName = '';
@@ -148,10 +148,13 @@ export default class AnimalsNewController extends Controller {
       payload.owner = {
         name: this.owner.name.trim(),
         phone: this.owner.phone.trim() || null,
+        farm_name: this.owner.farm_name ? this.owner.farm_name.trim() || null : null,
         village: this.owner.village.trim() || null,
         district: this.owner.district || null,
         is_contact_public: !!this.owner.is_contact_public,
       };
+      // where the animal is kept with this new owner → ownership place_note
+      if (this.owner.place && this.owner.place.trim()) payload.owner_place = this.owner.place.trim();
       payload.owner_role = 'CURRENT_OWNER';
     }
     return payload;

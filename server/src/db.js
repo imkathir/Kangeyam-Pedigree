@@ -17,7 +17,14 @@ const { Worker } = require('worker_threads');
 const fs = require('fs');
 const path = require('path');
 
-const DATABASE_URL = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL || null;
+// Resolution order: the canonical name, then the Neon marketplace integration's
+// injected `KANGEYAM_PEDIGREE_DATABASE_URL` (integration-store secrets cannot be
+// copied out via API, so the app reads it in place), then a manual NEON_DATABASE_URL.
+const DATABASE_URL =
+  process.env.DATABASE_URL ||
+  process.env.KANGEYAM_PEDIGREE_DATABASE_URL ||
+  process.env.NEON_DATABASE_URL ||
+  null;
 if (!DATABASE_URL) {
   throw new Error(
     'DATABASE_URL is required (postgresql://…). Production should use a persistent ' +

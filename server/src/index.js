@@ -338,7 +338,33 @@ api.get('/animals', (req, res) => {
   });
 });
 
-api.post('/animals', (req, res) => {
+/**
+ * Photos (and videos) arrive from the phone as compressed base64 data URLs.
+ * With Vercel Blob configured, the bytes are forwarded to Blob and only the
+ * public CDN URL is stored — tiny rows, per-image browser caching, and the
+ * bytes stop living inside every API response. Without a token (local dev,
+ * test suites) the data URL is stored as-is, so nothing else changes.
+ */
+async function storePhoto(dataUrl, animalId) {
+  if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) return dataUrl;
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) return dataUrl;
+  const comma = dataUrl.indexOf(',');
+  const type = (/^data:([a-z0-9.+-]+\/[a-z0-9.+-]+);base64$/i.exec(dataUrl.slice(0, comma)) || [])[1] || 'image/jpeg';
+  const subtype = type.split('/')[1];
+  const ext = subtype === 'jpeg' ? 'jpg' : subtype;
+  const { put } = require('@vercel/blob'); // lazy: local dev never loads it
+  const pathname = `animals/${animalId || 'staging'}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const blob = await put(pathname, Buffer.from(dataUrl.slice(comma + 1), 'base64'), {
+    access: 'public',
+    contentType: type,
+    token,
+  });
+  return blob.url;
+}
+
+api.post('/animals', (req, res, next) => {
+  (async () => {
   const body = req.body || {};
   const data = validateAnimalPayload(body, { partial: false });
 
@@ -378,11 +404,12 @@ api.post('/animals', (req, res) => {
       // first photo of the record becomes the primary profile image
       const isPrimary = created.media.length === 0 || m.is_primary ? 1 : 0;
       if (isPrimary) db.prepare('UPDATE animal_media SET is_primary = 0 WHERE animal_id = ?').run(id);
+      const url = await storePhoto(m.media_url, id);
       db.prepare(
         `INSERT INTO animal_media (animal_id, media_url, media_type, life_stage, caption, is_primary)
          VALUES (?, ?, ?, ?, ?, ?)`
-      ).run(id, m.media_url, m.media_type || 'PHOTO', m.life_stage || null, m.caption || null, isPrimary);
-      created.media.push(m.media_url);
+      ).run(id, url, m.media_type || 'PHOTO', m.life_stage || null, m.caption || null, isPrimary);
+      created.media.push(url);
     }
   }
   clearCaches();
@@ -403,6 +430,7 @@ api.post('/animals', (req, res) => {
     });
   }
   res.status(201).json({ data: detail(id) });
+  })().catch(next);
 });
 
 api.get('/animals/:id', (req, res) => {
@@ -529,7 +557,8 @@ api.get('/animals/:id/media', (req, res) => {
   res.json({ data: qMedia.all(animal.id), meta: { total: qMedia.all(animal.id).length } });
 });
 
-api.post('/animals/:id/media', (req, res) => {
+api.post('/animals/:id/media', (req, res, next) => {
+  (async () => {
   const animal = getAnimal.get(req.params.id);
   if (!animal) throw new ApiError(404, 'Animal not found');
   const b = req.body || {};
@@ -546,11 +575,13 @@ api.post('/animals/:id/media', (req, res) => {
     ]);
   }
   if (isPrimary) db.prepare('UPDATE animal_media SET is_primary = 0 WHERE animal_id = ?').run(animal.id);
+  const url = await storePhoto(b.media_url, animal.id);
   const info = db.prepare(
     `INSERT INTO animal_media (animal_id, media_url, media_type, life_stage, caption, is_primary)
      VALUES (?, ?, ?, ?, ?, ?) RETURNING id`
-  ).run(animal.id, b.media_url, type, b.life_stage || null, b.caption || null, count === 0 ? 1 : isPrimary);
+  ).run(animal.id, url, type, b.life_stage || null, b.caption || null, count === 0 ? 1 : isPrimary);
   res.status(201).json({ data: db.prepare('SELECT * FROM animal_media WHERE id = ?').get(info.lastInsertRowid) });
+  })().catch(next);
 });
 
 api.patch('/animals/:id/media/:mediaId', (req, res) => {
@@ -653,6 +684,41 @@ api.post('/admin/media/compress', (req, res, next) => {
         saved_bytes: saved, rows: report, errors,
       },
     });
+  })().catch(next);
+});
+
+/* One-shot backfill: move every stored data-URL photo/video out to Vercel
+ * Blob and keep only the CDN URL in the row. Key-gated; refuses cleanly when
+ * the deployment has no BLOB_READ_WRITE_TOKEN (local dev).
+ */
+api.post('/admin/media/migrate-blob', (req, res, next) => {
+  requireAdmin(req);
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new ApiError(422, 'Validation failed',
+      'BLOB_READ_WRITE_TOKEN is not configured on this deployment.');
+  }
+  const rows = db.prepare(
+    `SELECT id, animal_id, media_url FROM animal_media
+      WHERE media_url LIKE 'data:%' ORDER BY id`,
+  ).all();
+  (async () => {
+    let migrated = 0;
+    const errors = [];
+    const report = [];
+    for (const row of rows) {
+      try {
+        const url = await storePhoto(row.media_url, row.animal_id);
+        const info = db.prepare('UPDATE animal_media SET media_url = ? WHERE id = ? AND media_url = ?')
+          .run(url, row.id, row.media_url);
+        if (info.changes) {
+          migrated++;
+          report.push({ id: row.id, url });
+        }
+      } catch (e) {
+        errors.push({ id: row.id, error: e.message });
+      }
+    }
+    res.json({ data: { scanned: rows.length, migrated, errors, rows: report } });
   })().catch(next);
 });
 

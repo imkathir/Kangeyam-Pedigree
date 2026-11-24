@@ -122,6 +122,13 @@ boot, because a throwaway database is exactly what made records vanish on every 
 a Neon project (neon.tech), paste its pooled connection string as `DATABASE_URL` in the Vercel
 project settings (production + preview), and the schema creates itself on the next boot.
 
+**Photos** travel the other way: uploads are compressed on-device (~50 KB) and, when a Vercel
+Blob store provides `BLOB_READ_WRITE_TOKEN`, the bytes are stored in Blob — the database keeps
+only the public CDN URL (tiny rows, per-image caching, media bytes off the API). Without the
+token (local dev) the compressed data URL is stored directly, so nothing else changes.
+`POST /api/v1/admin/media/migrate-blob` (write key) moves any already-stored data URLs to
+Blob in one shot.
+
 `GET /api/v1/health` reports `{"status":"ok","animals":29,"database":"neon|postgres"}`
 so you can confirm which mode a deployment is in.
 

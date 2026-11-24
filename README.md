@@ -132,6 +132,27 @@ Blob in one shot.
 `GET /api/v1/health` reports `{"status":"ok","animals":29,"database":"neon|postgres"}`
 so you can confirm which mode a deployment is in.
 
+### Deploying to Render (free backup host)
+
+The Vercel project is the primary deployment, but the app is deliberately **host-agnostic**:
+one Express process serves the API, the built Ember SPA, and `/media`, and the database is
+Neon — so a second host is one config file away (`render.yaml` at the repo root).
+
+1. Sign up at render.com with the GitHub account that owns this repo (no credit card).
+2. **New → Blueprint** → pick this repo. Render reads `render.yaml` and creates the
+   web service (free plan, Oregon, `npm run install:all && npm run build`, `npm start`,
+   health check on `/api/v1/health`).
+3. When prompted, fill the two secrets (`sync: false` in the blueprint):
+   - `DATABASE_URL` — the **same Neon connection string** the Vercel project uses
+   - `WRITE_API_KEY` — the same production write key
+4. Deploy (~3–5 min), then verify `https://<name>.onrender.com/api/v1/health` →
+   `"database":"neon"` and the homepage renders.
+
+Notes: without `BLOB_READ_WRITE_TOKEN` the app stores compressed data URLs (the pre-Blob
+behaviour) — both hosts work, so photos are safe during any switch. Free instances spin
+down after 15 minutes of no traffic (~1 minute to wake), and 750 instance-hours/month
+covers one always-on service. Nothing about the database changes when you add this host.
+
 ---
 
 ## 3. Core modelling decisions

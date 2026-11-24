@@ -1,0 +1,26 @@
+# Render Blueprint — free backup host for Kangeyam Pedigree.
+# New → Blueprint → connect this repo → Render reads this file.
+# Secrets are NOT stored here: Render prompts for them (sync: false).
+# The app runs exactly as it does locally: one Express process serving
+# the API, the built Ember SPA, and /media, against the existing Neon DB.
+services:
+  - type: web
+    name: kangeyam-pedigree
+    runtime: node
+    plan: free            # 750 instance-hours/month, no credit card
+    region: oregon        # only region on the free plan
+    buildCommand: npm run install:all && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Same Neon connection string the Vercel project uses
+      # (KANGEYAM_PEDIGREE_DATABASE_URL there; plain DATABASE_URL here).
+      - key: DATABASE_URL
+        sync: false
+      # Same production write key as on Vercel.
+      - key: WRITE_API_KEY
+        sync: false
+      # Deliberately not set: SEED_DEMO_DATA — the database already has data,
+      # and production must never be seeded without permission.

@@ -132,9 +132,9 @@ Blob in one shot.
 `GET /api/v1/health` reports `{"status":"ok","animals":29,"database":"neon|postgres"}`
 so you can confirm which mode a deployment is in.
 
-### Deploying to Render (free backup host)
+### Deploying to Render (primary host)
 
-The Vercel project is the primary deployment, but the app is deliberately **host-agnostic**:
+Production runs on Render (free plan, configured by `render.yaml` at the repo root); the app is deliberately **host-agnostic**:
 one Express process serves the API, the built Ember SPA, and `/media`, and the database is
 Neon — so a second host is one config file away (`render.yaml` at the repo root).
 

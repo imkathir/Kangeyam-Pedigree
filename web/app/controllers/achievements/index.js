@@ -1,11 +1,12 @@
 import Controller from '@ember/controller';
-import { action } from '@ember/object';
+import { action, set } from '@ember/object';
+import { tracked } from '@glimmer/tracking';
 
 export default class AchievementsIndexController extends Controller {
   queryParams = ['q', 'category', 'page'];
-  q = '';
-  category = '';
-  page = 1;
+  @tracked q = '';
+  @tracked category = '';
+  @tracked page = 1;
 
   timer = null;
 
@@ -14,8 +15,8 @@ export default class AchievementsIndexController extends Controller {
     const value = event.target.value;
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
-      this.q = value;
-      this.page = 1;
+      set(this, 'q', value);
+      set(this, 'page', 1);
     }, 260);
   }
 }

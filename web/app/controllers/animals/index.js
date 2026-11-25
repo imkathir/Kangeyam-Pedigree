@@ -1,18 +1,19 @@
 import Controller from '@ember/controller';
-import { action } from '@ember/object';
+import { action, set } from '@ember/object';
+import { tracked } from '@glimmer/tracking';
 import { COLORS_LIST } from 'web/utils/enums';
 
 export default class AnimalsIndexController extends Controller {
   queryParams = ['q', 'sex', 'color', 'village', 'min_generations', 'has_achievements', 'sort', 'page'];
 
-  q = '';
-  sex = '';
-  color = '';
-  village = '';
-  min_generations = '';
-  has_achievements = false;
-  sort = 'recent';
-  page = 1;
+  @tracked q = '';
+  @tracked sex = '';
+  @tracked color = '';
+  @tracked village = '';
+  @tracked min_generations = '';
+  @tracked has_achievements = false;
+  @tracked sort = 'recent';
+  @tracked page = 1;
 
   timer = null;
 
@@ -45,8 +46,8 @@ export default class AnimalsIndexController extends Controller {
     if (eventOrValue && eventOrValue.target) {
       value = eventOrValue.target.type === 'checkbox' ? eventOrValue.target.checked : eventOrValue.target.value;
     }
-    this[key] = value;
-    this.page = 1;
+    set(this, key, value);
+    set(this, 'page', 1);
   }
 
   @action
@@ -54,37 +55,37 @@ export default class AnimalsIndexController extends Controller {
     const value = event.target.value;
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
-      this.q = value;
-      this.page = 1;
+      set(this, 'q', value);
+      set(this, 'page', 1);
     }, 260);
   }
 
   @action
   clearFilter(key) {
-    this[key] = key === 'has_achievements' ? false : '';
-    this.page = 1;
+    set(this, key, key === 'has_achievements' ? false : '');
+    set(this, 'page', 1);
   }
 
   @action
   clearAll() {
-    this.q = '';
-    this.sex = '';
-    this.color = '';
-    this.village = '';
-    this.min_generations = '';
-    this.has_achievements = false;
-    this.page = 1;
+    set(this, 'q', '');
+    set(this, 'sex', '');
+    set(this, 'color', '');
+    set(this, 'village', '');
+    set(this, 'min_generations', '');
+    set(this, 'has_achievements', false);
+    set(this, 'page', 1);
   }
 
   @action
   toggleSex(value) {
-    this.sex = this.sex === value ? '' : value;
-    this.page = 1;
+    set(this, 'sex', this.sex === value ? '' : value);
+    set(this, 'page', 1);
   }
 
   @action
   toggleAchievements() {
-    this.has_achievements = !this.has_achievements;
-    this.page = 1;
+    set(this, 'has_achievements', !this.has_achievements);
+    set(this, 'page', 1);
   }
 }

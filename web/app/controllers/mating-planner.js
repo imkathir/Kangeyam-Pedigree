@@ -1,31 +1,32 @@
 import Controller from '@ember/controller';
-import { action } from '@ember/object';
+import { action, set } from '@ember/object';
+import { tracked } from '@glimmer/tracking';
 
 export default class MatingPlannerController extends Controller {
   queryParams = ['sire', 'dam'];
-  sire = '';
-  dam = '';
+  @tracked sire = '';
+  @tracked dam = '';
 
   @action
   setSire(event) {
-    this.sire = event.target.value;
+    set(this, 'sire', event.target.value);
   }
 
   @action
   setDam(event) {
-    this.dam = event.target.value;
+    set(this, 'dam', event.target.value);
   }
 
   @action
   swap() {
     const s = this.sire;
-    this.sire = this.dam;
-    this.dam = s;
+    set(this, 'sire', this.dam);
+    set(this, 'dam', s);
   }
 
   @action
   reset() {
-    this.sire = '';
-    this.dam = '';
+    set(this, 'sire', '');
+    set(this, 'dam', '');
   }
 }
